@@ -1,0 +1,265 @@
+html {
+  font-family: Arial, Helvetica, sans-serif; 
+  display: inline-block; 
+  text-align: center;
+}
+
+h1 {
+  font-size: 1.8rem; 
+  color: #F8F8F8;
+}
+
+p { 
+  font-size: 1.4rem;
+  color: #F8F8F8;
+}
+
+.topnav { 
+  overflow: hidden; 
+  background-color: #0F2139;
+}
+
+body {  
+  margin: 0;
+  background-color: #1E1E1E;
+  color: #F8F8F8;
+}
+
+.content { 
+  padding: 5%;
+}
+
+.card-grid { 
+  max-width: 800px; 
+  margin: 0 auto; 
+  display: grid; 
+  grid-gap: 2rem; 
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+
+.card { 
+  background-color: #252525; 
+  box-shadow: 2px 2px 12px 1px rgba(140,140,140,.5);
+}
+
+.card-title { 
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #F8F8F8;
+}
+
+input[type=submit] {
+  border: none;
+  color: #F8F8F8;
+  background-color: #0F2139;
+  padding: 15px 15px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  width: 100px;
+  margin-right: 10px;
+  border-radius: 4px;
+  transition-duration: 0.4s;
+}
+
+input[type=submit]:hover {
+  background-color: #034078;
+}
+
+input[type=text], input[type=number], select {
+  width: 50%;
+  padding: 12px 20px;
+  margin: 18px;
+  display: inline-block;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+  background-color: #252525;
+  color: #F8F8F8;
+}
+
+label {
+  font-size: 1.2rem; 
+  color: #F8F8F8;
+}
+.value{
+  font-size: 1.2rem;
+  color: #0F2139;  
+}
+.state {
+  font-size: 1.2rem;
+  color: #0F2139;
+}
+button {
+  border: none;
+  color: #F8F8F8;
+  padding: 15px 32px;
+  text-align: center;
+  font-size: 16px;
+  width: 100px;
+  border-radius: 4px;
+  transition-duration: 0.4s;
+}
+.button-on {
+  background-color: #0F2139;
+  color: #F8F8F8;
+  padding: 15px 32px;
+  text-align: center;
+  font-size: 16px;
+  width: 100px;
+  border-radius: 4px;
+  transition-duration: 0.4s;
+  border: none;
+}
+.button-on:hover {
+  background-color: #034078;
+}
+.button-off {
+  background-color: #858585;
+  color: #F8F8F8;
+  padding: 15px 32px;
+  text-align: center;
+  font-size: 16px;
+  width: 100px;
+  border-radius: 4px;
+  transition-duration: 0.4s;
+  border: none;
+}
+.button-off:hover {
+  background-color: #3E3E3E;
+}
+
+
+
+/* html {
+  font-family: Arial, Helvetica, sans-serif; 
+  display: inline-block; 
+  text-align: center;
+}
+
+h1 {
+  font-size: 1.8rem; 
+  color: #FEFCFB;
+}
+
+p { 
+  font-size: 1.4rem;
+  color: #FEFCFB;
+}
+
+.topnav { 
+  overflow: hidden; 
+  background-color: #034078;
+}
+
+body {  
+  margin: 0;
+  background-color: #0A1128;
+  color: #FEFCFB;
+}
+
+.content { 
+  padding: 5%;
+}
+
+.card-grid { 
+  max-width: 800px; 
+  margin: 0 auto; 
+  display: grid; 
+  grid-gap: 2rem; 
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+
+.card { 
+  background-color: #1E2339; 
+  box-shadow: 2px 2px 12px 1px rgba(140,140,140,.5);
+}
+
+.card-title { 
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #FEFCFB;
+}
+
+input[type=submit] {
+  border: none;
+  color: #FEFCFB;
+  background-color: #1282A2;
+  padding: 15px 15px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  width: 100px;
+  margin-right: 10px;
+  border-radius: 4px;
+  transition-duration: 0.4s;
+}
+
+input[type=submit]:hover {
+  background-color: #034078;
+}
+
+input[type=text], input[type=number], select {
+  width: 50%;
+  padding: 12px 20px;
+  margin: 18px;
+  display: inline-block;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+  background-color: #FEFCFB;
+  color: #0A1128;
+}
+
+label {
+  font-size: 1.2rem; 
+  color: #FEFCFB;
+}
+.value{
+  font-size: 1.2rem;
+  color: #1282A2;  
+}
+.state {
+  font-size: 1.2rem;
+  color: #1282A2;
+}
+button {
+  border: none;
+  color: #FEFCFB;
+  padding: 15px 32px;
+  text-align: center;
+  font-size: 16px;
+  width: 100px;
+  border-radius: 4px;
+  transition-duration: 0.4s;
+}
+.button-on {
+  background-color: #034078;
+  color: #FEFCFB;
+  padding: 15px 32px;
+  text-align: center;
+  font-size: 16px;
+  width: 100px;
+  border-radius: 4px;
+  transition-duration: 0.4s;
+  border: none;
+}
+.button-on:hover {
+  background-color: #1282A2;
+}
+.button-off {
+  background-color: #858585;
+  color: #FEFCFB;
+  padding: 15px 32px;
+  text-align: center;
+  font-size: 16px;
+  width: 100px;
+  border-radius: 4px;
+  transition-duration: 0.4s;
+  border: none;
+}
+.button-off:hover {
+  background-color: #252524;
+} */
