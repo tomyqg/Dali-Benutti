@@ -68,7 +68,7 @@ public:
     void program_short_address(uint8_t shortadr);
     uint8_t query_short_address();
     uint32_t find_addr();
-    uint8_t commission(uint8_t init_arg);
+    uint8_t commission(uint8_t onlyNew);
     // uint32_t commission(bool onlyNew = true);
 };
 
