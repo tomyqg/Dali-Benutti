@@ -336,6 +336,8 @@ void loop() {
     //     Serial.print("  - Short address ");
     //     Serial.println(shortAddresses[i]);
     // }
+// uint8_t found = bdali.commission(DA_YES);
+// Serial.print(found);
 
 
 

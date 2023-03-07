@@ -118,7 +118,7 @@ BIT 7: Query: POWER FAILURE?		: 0 = No; RESET or COMMAND received after power on
 #define DA_QUERY_GROUPS_8_TO_15					0xC1	//Return : Bitmask GROUP 8..15 (8 Bit value; 1 = in group)
 #define DA_QUERY_RANDOM_ADDRESS_H				0xC2	//Return : Upper 8 Bit of 24 Bit random address
 #define DA_QUERY_RANDOM_ADDRESS_M				0xC3	//Return : Middle 8 Bit of 24 Bit random address
-#define DA_QUERY_RANDOM_ADDRESS_L				0xC3	//Return : Lower 8 Bit of 24 Bit random address
+#define DA_QUERY_RANDOM_ADDRESS_L				0xC4	//Return : Lower 8 Bit of 24 Bit random address
 #define DA_READ_MEMORY_LOCATION					0xC5
 //Commands 198..199 Reserved
 //Commands 200..207 Reserved

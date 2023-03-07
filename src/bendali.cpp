@@ -115,6 +115,7 @@ uint8_t WaitForReply()
 //Send 8bit command into the DALI bus
 void SendCommand(uint8_t dali_adr, uint8_t value)
 {
+    WaitForReady();
     Wire.beginTransmission(LW14_I2C);
     Wire.write(I2C_REG_COMMAND); //Register: command
     Wire.write((uint8_t)dali_adr);            //DALI address
@@ -126,6 +127,7 @@ void SendCommand(uint8_t dali_adr, uint8_t value)
 //Send value to all DALI devices (for special commands like 'TERMINATE', 'DTR', etc)
 void SendTwice(uint8_t byte1, uint8_t byte2)
 {
+    WaitForReady();
     Wire.beginTransmission(LW14_I2C);
     Wire.write(I2C_REG_COMMAND);        //Register: command
     Wire.write((uint8_t)byte1);         //DALI address
@@ -153,7 +155,7 @@ void SendToDTR(uint8_t dtr, uint8_t value)
 //Get value from QUERY command by DALI slave address
 uint8_t GetQuery(uint8_t dali_adr, uint8_t cmd)
 {
-    WaitForReady();                     //Wait for bus ready
+    // WaitForReady();                     //Wait for bus ready implemented in sendcmd
     SendCommand(dali_adr, cmd);         //Send query command
     uint8_t res = WaitForReply();       //Wait for data
 
@@ -469,4 +471,134 @@ uint8_t* BDali::getSceneLevels(uint8_t lightNumber) {
     return levels;
 }
 
+//======================================================================
+// Commissioning short addresses
+//======================================================================
+
+//Sets the slave Note 1 to the INITIALISE status for15 minutes.
+//Commands 259 to 270 are enabled only for a slave in this
+//status.
+
+//set search address
+void BDali::set_searchaddr(uint32_t adr) {
+  SendCommand(DA_EXT_SEARCHADDRH,adr>>16);
+  SendCommand(DA_EXT_SEARCHADDRM,adr>>8);
+  SendCommand(DA_EXT_SEARCHADDRL,adr);
+}
+
+//set search address, but set only changed bytes (takes less time)
+void BDali::set_searchaddr_diff(uint32_t adr_new,uint32_t adr_current) {
+  if( (uint8_t)(adr_new>>16) !=  (uint8_t)(adr_current>>16) ) SendCommand(DA_EXT_SEARCHADDRH,adr_new>>16);
+  if( (uint8_t)(adr_new>>8)  !=  (uint8_t)(adr_current>>8)  ) SendCommand(DA_EXT_SEARCHADDRM,adr_new>>8);
+  if( (uint8_t)(adr_new)     !=  (uint8_t)(adr_current)     ) SendCommand(DA_EXT_SEARCHADDRL,adr_new);
+}
+
+//Is the random address smaller or equal to the search address?
+//as more than one device can reply, the reply gets garbled
+uint8_t BDali::compare() {
+  uint8_t retry = 2;
+  while(retry>0) {
+    //compare is true if we received any activity on the bus as reply.
+    //sometimes the reply is not registered... so only accept retry times 'no reply' as a real false compare
+    int16_t rv = GetQuery(DA_EXT_COMPARE,0x00);
+    if(rv == -STATUS_FRAME_ERROR) return 1;
+    if(rv == -STATUS_VALID) return 1;
+    if(rv == 0xFF) return 1;
+
+    retry--;
+  }
+  return 0;
+}
+
+//The slave shall store the received 6-bit address (AAAAAA) as a short address if it is selected.
+void BDali::program_short_address(uint8_t shortadr) {
+  SendCommand(DA_EXT_PROGRAMM_SHORT_ADDRESS, (shortadr << 1) | 0x01);
+}
+
+//What is the short address of the slave being selected?
+uint8_t BDali::query_short_address() {
+  return GetQuery(DA_EXT_QUERY_SHORT_ADDRESS, 0x00) >> 1;
+}
+
+//find addr with binary search
+uint32_t BDali::find_addr() {
+  uint32_t adr = 0x800000;
+  uint32_t addsub = 0x400000;
+  uint32_t adr_last = adr;
+  set_searchaddr(adr);
+  
+  while(addsub) {
+    set_searchaddr_diff(adr,adr_last);
+    adr_last = adr;
+    //Serial.print("cmpadr=");
+    //Serial.print(adr,HEX);
+    uint8_t cmp = compare(); //returns 1 if searchadr > adr
+    //Serial.print("cmp ");
+    //Serial.print(adr,HEX);
+    //Serial.print(" = ");
+    //Serial.println(cmp);
+    if(cmp) adr-=addsub; else adr+=addsub;
+    addsub >>= 1;
+  }
+  set_searchaddr_diff(adr,adr_last);
+  adr_last = adr;
+  if(!compare()) {
+    adr++;
+    set_searchaddr_diff(adr,adr_last);
+  }
+  return adr;
+}
+
+//onlyNew=DA_YES : all without short address
+//onlyNew=DA_NO : all 
+//returns number of new short addresses assigned
+uint8_t BDali::commission(uint8_t onlyNew) {
+  uint8_t cnt = 0;
+  uint8_t arr[64];
+  uint8_t sa;
+  for(sa=0; sa<64; sa++) arr[sa]=0;
+
+//  find lights already on the bus and tags them as used in arr
+  std::vector<uint8_t> shortAddresses = findLights();
+      for (int i = 0; i < shortAddresses.size(); i++) {
+        if (onlyNew == DA_YES){
+        arr[shortAddresses[i]]=1;
+        }
+    }
+
+  // TODO: delete existing shorts with their scenes and groups if onlyNew is DA_NO
+
+  //start commissioning
+  SendTwice(DA_EXT_INITIALISE,onlyNew);
+
+  SendTwice(DA_EXT_RANDOMISE,0x00);
+  //need 100ms pause after RANDOMISE, scan takes care of this...
+  WaitForReady();
+  //find random addresses and assign unused short addresses
+  while(1) {
+    uint32_t adr = find_addr();
+    if(adr>0xffffff) break; //no more random addresses found -> exit
+    //find first unused short address
+    for(sa=0; sa<64; sa++) {
+      if(arr[sa]==0) break;
+    }
+    if(sa>=64) break; //all 64 short addresses assigned -> exit
+
+    //mark short address as used
+    arr[sa] = 1;
+    cnt++;
+ 
+    //assign short address
+    program_short_address(sa);
+
+    //Serial.println(query_short_address()); //TODO check read adr, handle if not the same...
+
+    //remove the device from the search
+    SendCommand(DA_EXT_WITHDRAW,0x00);
+  }
+
+  //terminate the DALI_INITIALISE command
+  SendCommand(DA_EXT_TERMINATE,0x00);
+  return cnt;
+}
 

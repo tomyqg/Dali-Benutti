@@ -62,8 +62,14 @@ public:
     uint8_t getPowerOnLevel(uint8_t lightNumber);
     bool* getGroupMembership(uint8_t lightNumber);
     uint8_t* getSceneLevels(uint8_t lightNumber);
-    void commission(byte startAddress = 0, bool onlyNew = false);
-    void commission_tick();
+    void set_searchaddr(uint32_t adr);
+    void set_searchaddr_diff(uint32_t adr_new,uint32_t adr_current);
+    uint8_t compare();
+    void program_short_address(uint8_t shortadr);
+    uint8_t query_short_address();
+    uint32_t find_addr();
+    uint8_t commission(uint8_t init_arg);
+    // uint32_t commission(bool onlyNew = true);
 };
 
 class DLight {
