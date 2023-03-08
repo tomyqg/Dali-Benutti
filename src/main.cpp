@@ -231,7 +231,7 @@ void setup() {
       });
 
     ArduinoOTA.begin();
-
+loadLights();
   }
   else {
     // Connect to Wi-Fi network with SSID and password
