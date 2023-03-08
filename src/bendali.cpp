@@ -482,6 +482,18 @@ uint8_t* BDali::getSceneLevels(uint8_t lightNumber) {
     return levels;
 }
 
+uint8_t BDali::getFadeRate(uint8_t lightNumber){
+  uint8_t shortAddress = GetShortAddress(lightNumber, DA_MODE_COMMAND);
+  uint8_t result = GetQuery(shortAddress,DA_QUERY_FADE_TIME_RATE)& 0x0F;
+  return result;
+}
+
+uint8_t BDali::getFadeTime(uint8_t lightNumber){
+  uint8_t shortAddress = GetShortAddress(lightNumber, DA_MODE_COMMAND);
+  uint8_t result = ((GetQuery(shortAddress,DA_QUERY_FADE_TIME_RATE)& 0xF0) >> 4);
+  return result;
+};
+
 //======================================================================
 // Commissioning short addresses
 //======================================================================

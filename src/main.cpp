@@ -192,6 +192,8 @@ void setup() {
     });
     server.serveStatic("/", SPIFFS, "/");
     server.begin();
+    // loading of the dlight instances
+    loadLights();
       // Websockets setup
   webSocket.begin();
   webSocket.onEvent(webSocketEvent);
@@ -231,7 +233,7 @@ void setup() {
       });
 
     ArduinoOTA.begin();
-loadLights();
+
   }
   else {
     // Connect to Wi-Fi network with SSID and password
@@ -356,7 +358,7 @@ void loop() {
     // delete[] sceneLevels;
 
     // Wait for some time before repeating
-    delay(50000);
+    // delay(50000);
 
 
 

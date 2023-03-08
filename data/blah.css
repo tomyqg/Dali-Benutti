@@ -1,0 +1,117 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #060606;
+    margin: 0;
+    padding: 0;
+  }
+  
+  header {
+    background-color: #333;
+    color: #fff;
+    padding: 1em;
+    text-align: center;
+  }
+  
+  nav {
+    background-color: #ccc;
+    display: flex;
+    justify-content: center;
+  }
+  
+  nav ul {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  
+  nav a {
+    color: #333;
+    display: block;
+    padding: 10px 20px;
+    text-decoration: none;
+  }
+  
+
+  .lightControl{
+    display: inline-block;
+    margin-right: 10px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+  }
+
+  ul{
+    padding-inline-start: 0 !important;
+  }
+
+  .lightControl h3 {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    /* width: 8em; */
+    margin: 0 auto;
+  }
+
+  .light-slider {
+    width: 80vw;
+    margin-left: 2 auto;
+    margin-right: auto;
+  }
+
+  @media (min-width: 768px) {
+    input[type="range"] {
+      width: 30vw;
+    }
+  }
+
+  .toggle-container {
+    display: inline-block;
+    position: relative;
+    cursor: pointer;
+    user-select: none;
+  }
+  
+  .toggle-container input[type="checkbox"] {
+    display: none;
+  }
+  
+  #config button{
+    margin-bottom: 0.2em;
+  }
+
+  .toggle-container label {
+    background-color: #ddd;
+    border-radius: 20px;
+    display: block;
+    height: 20px;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 40px;
+  }
+  
+  .toggle-container label:before {
+    background-color: #fff;
+    border-radius: 50%;
+    content: "";
+    height: 12px;
+    left: 4px;
+    position: absolute;
+    top: 4px;
+    transition: all 0.2s ease;
+    width: 12px;
+  }
+  
+  .toggle-container input[type="checkbox"]:checked + label:before {
+    left: 24px;
+  }
+  
+  /* section {
+    display: none;
+  } */
+  
+  #welcome {
+    display: block;
+  }
+

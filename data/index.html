@@ -1,35 +1,51 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="UTF-8">
-    <title>BDALI Control Panel</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
-    <link rel="stylesheet" type="text/css" href="styleindex.css">
-    <script src="https://code.jquery.com/jquery-3.5.1.min.js" integrity="sha384-ZvpUoO/+PpLXR1lu4jmpXWu80pZlYUAfxl5NsBMWOEPSjUn/6Z/hRTt8+pR6L4N2" crossorigin="anonymous"></script>
-    <script src="script.js"></script>
-  </head>
-  <body>
-    <div class="container mt-5">
-      <h1 class="text-center mb-5">BDALI Control Panel</h1>
-      <div class="row">
-        <div class="col-sm-6 offset-sm-3">
-          <div class="form-group">
-              <div id="lightsContainer"></div>
-          <div class="form-group">
-          <label for="group-level">Group Level:</label>
-          <input type="number" class="form-control" id="group-level" min="0" max="100">
+<head>
+  <meta charset="UTF-8">
+  <title>Exterus Dali Lighting Control</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" type="text/css" href="blah.css">
+  <script
+  src="https://code.jquery.com/jquery-3.6.3.min.js"
+  integrity="sha256-pvPw+upLPUjgMXY0G+8O0xUf+/Im1MZjXxxgOcBQBXU="
+  crossorigin="anonymous"></script>
+  <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js" integrity="sha256-lSjKY0/srUM9BE3dPm+c4fBo1dky2v27Gdjm2uoZaL0=" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/ui-darkness/jquery-ui.css"/>
+  <script src="blah.js"></script>
+</head>
+<body>
+  <header>
+    <h1>Exterus Dali Lighting Control</h1>
+  </header>
+  <!-- <nav id="navTabs">
+    <ul id="navlist">
+
+    </ul>
+  </nav> -->
+  <main>
+    <div id="navTabs">
+      <ul id="navlist">
+
+      </ul>
+    <!-- dynamically generated sections for each room -->
+    <div id="config">
+      <h2>Configuration Page</h2>
+      <ul>
+        <li>
+          <button id="init-all" class="ui-button ui-corner-all">INIT ALL</button>
+          <button id="init-new" class="ui-button ui-corner-all">INIT NEW</button>
+          <button id="search" class="ui-button ui-corner-all">SEARCH</button>
+          <button id="save" class="ui-button ui-corner-all">SAVE</button>
+        </li>
+        <li>
+          <h3>Lights</h3>
+          <div id="roomsAccordion">
+            <!-- dynamically generated accordion for each room and its lights -->
           </div>
-          <div class="form-group text-center">
-          <button class="btn btn-primary mr-2" id="set-group-level">Set Group Level</button>
-          <button class="btn btn-danger" id="turn-off">Turn Off</button>
-          </div>
-          </div>
-          </div>
-          </div>
-          
-            </body>
-          </html>
-          
-          
-          
-          
+        </li>
+      </ul>
+    </div>
+  </div>
+  </main>
+</body>
+</html>

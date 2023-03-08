@@ -63,6 +63,8 @@ public:
     bool* getGroupMembership(uint8_t lightNumber);
     uint8_t* getSceneLevels(uint8_t lightNumber);
     uint8_t getPhysMinLevel(uint8_t lightNumber);
+    uint8_t getFadeTime(uint8_t lightNumber);
+    uint8_t getFadeRate(uint8_t lightNumber);
     void set_searchaddr(uint32_t adr);
     void set_searchaddr_diff(uint32_t adr_new,uint32_t adr_current);
     uint8_t compare();
@@ -77,8 +79,8 @@ class DLight {
   public:
     DLight() {} // Default constructor
 
-    DLight(uint8_t shortAddress, String name, String room, uint8_t minLevel, uint8_t maxLevel, uint8_t groups[], uint8_t sceneLevels[], uint8_t failLevel, uint8_t powerOnLevel, uint8_t physmin)
-      : shortAddress(shortAddress), name(name), room(room), minLevel(minLevel), maxLevel(maxLevel), failLevel(failLevel), powerOnLevel(powerOnLevel), physmin(physmin) {
+    DLight(uint8_t shortAddress, String name, String room, uint8_t minLevel, uint8_t maxLevel, uint8_t groups[], uint8_t sceneLevels[], uint8_t failLevel, uint8_t powerOnLevel, uint8_t physmin, uint8_t fadeTime, uint8_t fadeRate)
+      : shortAddress(shortAddress), name(name), room(room), minLevel(minLevel), maxLevel(maxLevel), failLevel(failLevel), powerOnLevel(powerOnLevel), physmin(physmin), fadeTime(fadeTime), fadeRate(fadeRate) {
         for (int i = 0; i < 16; i++) {
           this->groups[i] = groups[i];
           this->sceneLevels[i] = sceneLevels[i];
@@ -95,5 +97,7 @@ class DLight {
     uint8_t failLevel;
     uint8_t powerOnLevel;
     uint8_t physmin;
+    uint8_t fadeTime;
+    uint8_t fadeRate;
 };
 #endif // __BENDALI_H__
