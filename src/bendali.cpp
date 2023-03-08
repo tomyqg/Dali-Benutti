@@ -440,6 +440,17 @@ uint8_t BDali::getPowerOnLevel(uint8_t lightNumber) {
     return level;
 }
 
+uint8_t BDali::getPhysMinLevel(uint8_t lightNumber) {
+  // return the physical minimum level for the specified light number
+    uint8_t level;
+    uint8_t shortAddress;
+    shortAddress = GetShortAddress(lightNumber,DA_MODE_COMMAND);
+    WaitForReady();
+    level = GetQuery(shortAddress,DA_QUERY_PHYSICAL_MIN_LEVEL);
+    return level;
+}
+
+
 bool* BDali::getGroupMembership(uint8_t lightNumber) {
   // return a pointer to the array of group membership values for the specified light number
   // ...

@@ -11,5 +11,4 @@ void webSocketEvent(const uint8_t num, WStype_t type, uint8_t * payload, size_t 
 void loadLights();
 void saveLights();
 void getLights();
-void bdaliStartup();
 #endif // METHODS_H

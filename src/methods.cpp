@@ -97,12 +97,8 @@ void webSocketEvent(const uint8_t num, WStype_t type, uint8_t * payload, size_t 
     return;
   }
 
-
-  void getLights(){
-    // 
-  };
-
 void saveLights() {
+  // saves dlight instances to the spiffs
   File file = SPIFFS.open("/lights.bin", "w");
   int size = lights.size();
   file.write((uint8_t*)&size, sizeof(size));
@@ -113,6 +109,7 @@ void saveLights() {
 }
 
 void loadLights() {
+  //loads dlight instances to the spiffs
   if (SPIFFS.exists("/lights.bin")) {
     File file = SPIFFS.open("/lights.bin", "r");
     int size;
@@ -124,10 +121,36 @@ void loadLights() {
     file.close();
   } else {
     // code to create first instances starting by bdali.findLights()(for the shortaddresses)
+    std::vector<uint8_t> shorts = bdali.findLights();
     // then query all data from those shortaddresses  and finally store it in an instance.
+    for(auto sa = shorts.begin(); sa != shorts.end(); sa++ ){
+        uint8_t shortAddress = *sa;
+        String name = "Unknown";
+        String room = "Unknown";
+        uint8_t minLevel = bdali.getMinLevel(*sa);
+        uint8_t maxLevel = bdali.getMaxLevel(*sa);
+        uint8_t groups[16] = { 0 };
+          bool* groupMembership = bdali.getGroupMembership(*sa);
+            for(int i = 0; i < 16; i++) {
+            groups[i] = groupMembership[i];
+           }
+           delete[] groupMembership;
+        uint8_t sceneLevels[16] = { 0 };
+          uint8_t* scenes = bdali.getSceneLevels(*sa);
+            for(int i = 0; i < 16; i++) {
+            sceneLevels[i] = scenes[i];
+           }
+           delete[] scenes;
+        uint8_t failLevel = bdali.getFailLevel(*sa);
+        uint8_t powerOnLevel = bdali.getPowerOnLevel(*sa);
+        uint8_t physmin = bdali.getPhysMinLevel(*sa);
+  
+  // Create an instance of DLight with the above parameters
+  DLight light(shortAddress, name, room, minLevel, maxLevel, groups, sceneLevels, failLevel, powerOnLevel,physmin);
+
+  // Add the DLight instance to the lights vector
+  lights.push_back(light);
+    }
+    saveLights();
   }
 }
-
-  void bdaliStartup(){
-
-  };
