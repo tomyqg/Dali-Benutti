@@ -48,9 +48,7 @@ void webSocketEvent(const uint8_t num, WStype_t type, uint8_t * payload, size_t 
         return;
       }
 
-      // get values from JSON message
-      int lightNumber = doc["lightNumber"];
-      int level = doc["level"];
+
 
       // perform action based on the incoming message
       if (doc.containsKey("command")) {
@@ -60,39 +58,15 @@ void webSocketEvent(const uint8_t num, WStype_t type, uint8_t * payload, size_t 
             // Serial.println("executing getlights");
             doc.clear();
             sendDLights(num);
+          } else if(command == "levels"){
+            doc.clear();
+            sendLevels();
+          } else if(command == "setLevel"){
+            uint8_t sa=uint8_t(doc["shortAddress"]);
+            uint8_t lv=uint8_t(doc["level"]);
+            doc.clear();
+            bdali.setLightLevel(sa,lv);
           };
-      } else if (doc.containsKey("setLightLevel")) {
-        bdali.setLightLevel(lightNumber, level);
-      } else if (doc.containsKey("setLightOn")) {
-        bdali.setLightOn(lightNumber);
-      } else if (doc.containsKey("setLightOff")) {
-        bdali.setLightOff(lightNumber);
-      } else if (doc.containsKey("setLightUp")) {
-        bdali.setLightUp(lightNumber);
-      } else if (doc.containsKey("setLightDown")) {
-        bdali.setLightDown(lightNumber);
-      } else if (doc.containsKey("setGroupLevel")) {
-        int groupNumber = doc["groupNumber"];
-        bdali.setGroupLevel(groupNumber, level);
-      } else if (doc.containsKey("getLightLevel")) {
-        int lightLevel = bdali.getLightLevel(lightNumber);
-        doc.clear();
-        doc["lightLevel"] = lightLevel;
-        String response;
-        serializeJson(doc, response);
-        webSocket.sendTXT(num, response);
-      } else if (doc.containsKey("setGroupLevel")) {
-        int groupNumber = doc["groupNumber"];
-        int level = doc["level"];
-        bdali.setGroupLevel(groupNumber, level);
-        webSocket.sendTXT(num, "Group level set");
-      }
-       else if (doc.containsKey("reset")) {
-        powerReset();
-        webSocket.sendTXT(num, "Power reset performed");
-      }
-      else if (doc.containsKey("command") && doc["command"=="getLights"]) {
-
       }
     }
     return;
@@ -157,6 +131,30 @@ void loadLights() {
     saveLights();
   }
 }
+void sendLevels(){
+  // creates a jsonobject of all shortaddresses from all dlight instances, queries the live light levels and sends them to the client
+      // create a JsonObject and set its "command" property to "levels"
+       DynamicJsonDocument doc(1024);
+      JsonObject data = doc.to<JsonObject>();
+      data["command"] = "levels";
+
+      // create a JsonArray for the lights and add it to the JsonObject
+      JsonArray lightsArray = data.createNestedArray("lights");
+
+      // loop through the lights vector and add each DLight instance as a JsonObject to the lightsArray
+      for (auto& light : lights) {
+        // create a JsonObject and set its properties
+        JsonObject lightObject = lightsArray.createNestedObject();
+        lightObject["shortAddress"] = light.shortAddress;
+        lightObject["level"] = bdali.getLightLevel(light.shortAddress);
+  // Query the current level for the DALI light using bdali.getLightLevel()
+      }
+        // serialize the document to a String
+      String jsonString;
+      serializeJson(doc, jsonString);
+webSocket.broadcastTXT(jsonString);
+};
+
 
 void sendDLights(uint8_t num){
     //creates a jsonobject of all dlight instances and sends it to the websocket

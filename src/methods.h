@@ -10,6 +10,6 @@ extern std::vector<DLight> lights;
 void webSocketEvent(const uint8_t num, WStype_t type, uint8_t * payload, size_t length);
 void loadLights();
 void saveLights();
-void jsonLights();
+void sendLevels();
 void sendDLights(uint8_t num);
 #endif // METHODS_H
