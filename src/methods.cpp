@@ -48,8 +48,6 @@ void webSocketEvent(const uint8_t num, WStype_t type, uint8_t * payload, size_t 
         return;
       }
 
-
-
       // perform action based on the incoming message
       if (doc.containsKey("command")) {
           String command = doc["command"];
@@ -66,11 +64,38 @@ void webSocketEvent(const uint8_t num, WStype_t type, uint8_t * payload, size_t 
             uint8_t lv=uint8_t(doc["level"]);
             doc.clear();
             bdali.setLightLevel(sa,lv);
+          } else if(command == "updateLight"){
+              JsonObject lightData = doc["lightData"];
+              uint8_t shortAddressToFind = lightData["shortAddress"];
+                 for (auto& light : lights) { // iterate through each DLight object in the vector
+                  if (light.shortAddress == shortAddressToFind) { // check if the shortAddress matches
+                    light.fadeRate; // call a method of the matching DLight object
+                    String name = lightData["name"];
+                    String room = lightData["room"];
+                    uint8_t level = lightData["level"];
+                    uint8_t maxLevel = lightData["maxLevel"];
+                    uint8_t minLevel = lightData["minLevel"];
+                    uint8_t failLevel = lightData["failLevel"];
+                    uint8_t powerOnLevel = lightData["powerOnLevel"];
+                    uint8_t fadeTime = lightData["fadeTime"];
+                    uint8_t fadeRate = lightData["fadeRate"];
+                    JsonArray sceneLevels = lightData["sceneLevels"];
+                        for (int i = 0; i < sceneLevels.size(); i++) {
+                          int sceneLevel = sceneLevels[i];
+                          //set scenelevels , If scenelevel 255 delete from scene
+                        }
+                    JsonArray groups = lightData["groups"];
+                        for (int i = 0; i < groups.size(); i++) {
+                          bool groupMembership = groups[i];
+                          //set groupmemberships
+                        }
+                  };
+                }
           };
+        return;
       }
-    }
-    return;
-  }
+  };
+}
 
 void saveLights() {
   // saves dlight instances to the spiffs
