@@ -1,7 +1,7 @@
 // #include <Arduino.h>
 // #include <ArduinoJson.h>
 #include "methods.h"
-
+BDali* bdali = BDali::getInstance();
 const int maxClients = 5;
 int clientcount = 0;
 
@@ -63,7 +63,7 @@ void webSocketEvent(const uint8_t num, WStype_t type, uint8_t * payload, size_t 
             uint8_t sa=uint8_t(doc["shortAddress"]);
             uint8_t lv=uint8_t(doc["level"]);
             doc.clear();
-            bdali.setLightLevel(sa,lv);
+            bdali->setLightLevel(sa,lv);
           }else if(command == "updateLight") {
             JsonObject lightData = doc["lightData"];
             uint8_t shortAddressToFind = lightData["shortAddress"];
@@ -153,33 +153,33 @@ void loadLights() {
     }
     file.close();
   } else {
-    // code to create first instances starting by bdali.findLights()(for the shortaddresses)
-    std::vector<uint8_t> shorts = bdali.findLights();
+    // code to create first instances starting by bdali->findLights()(for the shortaddresses)
+    std::vector<uint8_t> shorts = bdali->findLights();
     // then query all data from those shortaddresses  and finally store it in an instance.
     for(auto sa = shorts.begin(); sa != shorts.end(); sa++ ){
         uint8_t shortAddress = *sa;
         String name = "Unknown";
         String room = "Unknown";
-        uint8_t minLevel = bdali.getMinLevel(*sa);
-        uint8_t maxLevel = bdali.getMaxLevel(*sa);
+        uint8_t minLevel = bdali->getMinLevel(*sa);
+        uint8_t maxLevel = bdali->getMaxLevel(*sa);
         uint8_t groups[16] = { 0 };
-          bool* groupMembership = bdali.getGroupMembership(*sa);
+          bool* groupMembership = bdali->getGroupMembership(*sa);
             for(int i = 0; i < 16; i++) {
             groups[i] = groupMembership[i];
            }
            delete[] groupMembership;
         uint8_t sceneLevels[16] = { 0 };
-          uint8_t* scenes = bdali.getSceneLevels(*sa);
+          uint8_t* scenes = bdali->getSceneLevels(*sa);
             for(int i = 0; i < 16; i++) {
             sceneLevels[i] = scenes[i];
            }
            delete[] scenes;
-        uint8_t failLevel = bdali.getFailLevel(*sa);
-        uint8_t powerOnLevel = bdali.getPowerOnLevel(*sa);
-        uint8_t physmin = bdali.getPhysMinLevel(*sa);
-        uint8_t fadeTime = bdali.getFadeTime(*sa);
-        uint8_t fadeRate = bdali.getFadeRate(*sa);
-        uint8_t level = bdali.getLightLevel(*sa);
+        uint8_t failLevel = bdali->getFailLevel(*sa);
+        uint8_t powerOnLevel = bdali->getPowerOnLevel(*sa);
+        uint8_t physmin = bdali->getPhysMinLevel(*sa);
+        uint8_t fadeTime = bdali->getFadeTime(*sa);
+        uint8_t fadeRate = bdali->getFadeRate(*sa);
+        uint8_t level = bdali->getLightLevel(*sa);
   // Create an instance of DLight with the above parameters
   DLight light(bdali, shortAddress, name, room, minLevel, maxLevel, groups, sceneLevels, failLevel, powerOnLevel, physmin, fadeTime, fadeRate, level);
 
@@ -205,7 +205,7 @@ void sendLevels(){
         JsonObject lightObject = lightsArray.createNestedObject();
         lightObject["shortAddress"] = light.getShortAddress();
         lightObject["level"] = light.getLevel();
-  // Query the current level for the DALI light using bdali.getLightLevel()
+  // Query the current level for the DALI light using bdali->getLightLevel()
       }
         // serialize the document to a String
       String jsonString;

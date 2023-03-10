@@ -1,5 +1,5 @@
 class DLight {
-  constructor(shortAddress, name , room, minLevel, maxLevel, groups = [], sceneLevels = [], failLevel = 254, powerOnLevel = 254, phyMinLevel, fadeTime, fadeRate) {
+  constructor(shortAddress, name , room, minLevel, maxLevel, groups = [], sceneLevels = [], failLevel = 254, powerOnLevel = 254, phyMinLevel, fadeTime, fadeRate,level) {
     this.shortAddress = shortAddress;
     this.name = name;
     this.room = room;
@@ -12,13 +12,26 @@ class DLight {
     this.phyMinLevel = phyMinLevel;
     this.fadeTime = fadeTime;
     this.fadeRate = fadeRate;
+    this.level = level;
   }
 }
 var Dlights=[];
-
+var socket;
+var sockurl ="ws://192.168.103.77:81" //debugging address
+// var sockurl ="ws://" + window.location.hostname + ":81";
 //class DGroup
 
 //class DScene
+
+function sendMessage(socket, message) {
+  if (socket.readyState === WebSocket.OPEN) {
+    socket.send(message);
+  } else {
+    socket = new WebSocket(sockurl);
+    socket.onopen = function() {
+    socket.send(message);};
+  }
+};
 
 function getFadeRateText(fadeRate) {
   switch (fadeRate) {
@@ -110,7 +123,7 @@ function renderAccordion() {
 
   var accordionHTML = "";
   rooms.forEach(function(room) {
-    accordionHTML += '<h3>' + room + '</h3><div><div class="light-buttons">';
+    accordionHTML += '<h3>' + room + '</h3><div><div class="light-buttons  button-grid">';
     Dlights.forEach(function(light) {
       if (light.room === room) {
         accordionHTML +=
@@ -126,7 +139,7 @@ function renderAccordion() {
     });
     accordionHTML += "</div></div>";
   });
-
+  $("#roomsAccordion").empty();
   $("#roomsAccordion").html(accordionHTML);
   $("#roomsAccordion").accordion({
     collapsible: true,
@@ -140,54 +153,50 @@ function renderAccordion() {
       return light.shortAddress === lightShortAddress;
     });
     
-    var formHTML = '<form><input type="hidden" name="command" value="saveLightData">';
+    var formHTML = '<form align="center"><input type="hidden" name="command" value="saveLightData"><input type="hidden" name="shortAddress" value="'+daliLightData.shortAddress+'">';
     formHTML += '<div class="controlgroup"><div class="form-group"><label for="lightName">Name:</label><input type="text" class="form-control" id="lightName" name="lightName" value="' + daliLightData.name + '"></div>';
     formHTML += '<div class="form-group"><label for="lightRoom">Room:</label><input type="text" class="form-control" id="lightRoom" name="lightRoom" value="' + daliLightData.room + '"></div>';
-    // formHTML += '<div class="form-group"><label for="maxLevel">Max Level:</label><input type="text" class="form-control" id="maxLevel" name="maxLevel" value="' + daliLightData.maxLevel + '"></div>';
-    // formHTML += '<div class="form-group"><label for="minLevel">Min Level:</label><input type="text" class="form-control" id="minLevel" name="minLevel" value="' + daliLightData.minLevel + '"></div>';
-    // formHTML += '<div class="form-group"><label for="failLevel">System Fail Level:</label><input type="text" class="form-control" id="failLevel" name="failLevel" value="' + daliLightData.failLevel + '"></div>';
-    // formHTML += '<div class="form-group"><label for="powerOnLevel">Power On Level:</label><input type="text" class="form-control" id="powerOnLevel" name="powerOnLevel" value="' + daliLightData.powerOnLevel + '"></div>';
     formHTML += '<div class="form-group">';
+    formHTML += '<label for="curLevelSlider">Current Level:</label>';
+    formHTML += '<input type="range" min="0" max="100" class="form-control-range curLevelSlider" name="currentLevel" id="light-slidr-' + daliLightData.shortAddress + '" value="' + daliLightData.level + '">';
+    formHTML += '<output id="curLevelValue">' + daliLightData.level + '</output>';
+    formHTML += '</div>';
     formHTML += '<label for="maxLevelSlider">Max Level:</label>';
-    formHTML += '<input type="range" min="' + daliLightData.phyMinLevel + '" max="254" class="form-control-range" id="maxLevelSlider" name="maxLevelSlider" value="' + daliLightData.maxLevel + '">';
+    formHTML += '<input type="range" min="' + daliLightData.phyMinLevel + '" max="254" class="form-control-range" id="maxLevelSlider" name="maxLevel" value="' + daliLightData.maxLevel + '">';
     formHTML += '<output id="maxLevelValue">' + daliLightData.maxLevel + '</output>';
     formHTML += '</div>';
     
     formHTML += '<div class="form-group">';
     formHTML += '<label for="minLevelSlider">Min Level:</label>';
-    formHTML += '<input type="range" min="' + daliLightData.phyMinLevel + '" max="254" class="form-control-range" id="minLevelSlider" name="minLevelSlider" value="' + daliLightData.minLevel + '">';
+    formHTML += '<input type="range" min="' + daliLightData.phyMinLevel + '" max="254" class="form-control-range" id="minLevelSlider" name="minLevel" value="' + daliLightData.minLevel + '">';
     formHTML += '<output id="minLevelValue">' + daliLightData.minLevel + '</output>';
     formHTML += '</div>';
     
     formHTML += '<div class="form-group">';
     formHTML += '<label for="failLevelSlider">System Fail Level:</label>';
-    formHTML += '<input type="range" min="' + daliLightData.phyMinLevel + '" max="254" class="form-control-range" id="failLevelSlider" name="failLevelSlider" value="' + daliLightData.failLevel + '">';
+    formHTML += '<input type="range" min="' + daliLightData.phyMinLevel + '" max="254" class="form-control-range" id="failLevelSlider" name="failLevel" value="' + daliLightData.failLevel + '">';
     formHTML += '<output id="failLevelValue">' + daliLightData.failLevel + '</output>';
     formHTML += '</div>';
-    
     formHTML += '<div class="form-group">';
     formHTML += '<label for="powerOnLevelSlider">Power On Level:</label>';
-    formHTML += '<input type="range" min="' + daliLightData.phyMinLevel + '" max="254" class="form-control-range" id="powerOnLevelSlider" name="powerOnLevelSlider" value="' + daliLightData.powerOnLevel + '">';
+    formHTML += '<input type="range" min="' + daliLightData.phyMinLevel + '" max="254" class="form-control-range" id="powerOnLevelSlider" name="powerOnLevel" value="' + daliLightData.powerOnLevel + '">';
     formHTML += '<output id="powerOnLevelValue">' + daliLightData.powerOnLevel + '</output>';
     formHTML += '</div>';
-    
-    // formHTML += '<div class="form-group"><label for="fadeTime">Fade Time:</label><input type="text" class="form-control" id="fadeTime" name="fadeTime" value="' + daliLightData.fadeTime + '"></div>';
     formHTML += '<div class="form-group">\
     <label for="fadeTimeSlider">Fade Time:</label>\
-    <input type="range" min="0" max="15" value="' + daliLightData.fadeTime + '" class="form-control-range" id="fadeTimeSlider">\
+    <input type="range" min="0" max="15" value="' + daliLightData.fadeTime + '" class="form-control-range" name="fadeTime" id="fadeTimeSlider">\
     <div id="fadeTimeValue">' + getFadeTimeText(daliLightData.fadeTime) + '</div>\
   </div>';  
-    // formHTML += '<div class="form-group"><label for="fadeRate">Fade Rate:</label><input type="text" class="form-control" id="fadeRate" name="fadeRate" value="' + daliLightData.fadeRate + '"></div>';
     formHTML += '<div class="form-group">\
     <label for="fadeRate">Fade Rate:</label>\
-    <input type="range" min="0" max="15" step="1" class="form-control" id="fadeRateSlider" name="fadeRateSlider" value="' + daliLightData.fadeRate + '">\
+    <input type="range" min="1" max="15" step="1" class="form-control" id="fadeRateSlider" name="fadeRate" value="' + daliLightData.fadeRate + '">\
     <div id="fadeRateValue">' + getFadeRateText(daliLightData.fadeRate) + '</div>\
   </div>';
     formHTML += '<table><tr>'
-    console.log(daliLightData);
+    // console.log(daliLightData);
     for (var i = 0; i <= 15; i++) {
-      formHTML += '<td><div class="form-group"><label for="groupMembership' + i + '">Group ' + i + ':</label><input type="checkbox" class="form-check-input" name="groupMembership' + i + '" id="groupMembership' + i + '" value="1" ' + (daliLightData.groups[i] ? 'checked' : '') + '></div></td>';
-      formHTML += '<td><div class="form-group"><label for="sceneLevel' + i + '">Scene ' + i + ':</label><input type="number" class="form-control" name="sceneLevel' + i + '" id="sceneLevel' + i + '" min="0" max="254" value="' + daliLightData.sceneLevels[i] + '"></div></td></tr><tr>';
+      formHTML += '<td><div class="form-group"><label for="groupMembership' + i + '">Group ' + i + ':</label><input type="checkbox" class="form-check-input" name="groupMembership' + i + '" id="groupMembership' + i + '" value="1" ' + (daliLightData.groups[i] ? 'checked="checked"' : '') + '></div></td>';
+      formHTML += '<td><div class="form-group"><label for="sceneLevel' + i + '">Scene ' + i + ':</label><input type="number" class="form-control" name="sceneLevel' + i + '" id="sceneLevel' + i + '" min="0" max="255" value="' + daliLightData.sceneLevels[i] + '"></div></td></tr><tr>';
     }
     formHTML.slice(0,-5);
 
@@ -208,97 +217,195 @@ function renderAccordion() {
           $(this).dialog('close');
         },
         "Save": function() {
-          var form = $(this).find( "form" ).on( "submit", function( event ) {
+          var form = $(this).find("form").on("submit", function(event) {
             event.preventDefault();
           });
-
+        
           var formData = form.prevObject.serializeArray().reduce(function(obj, item) {
             obj[item.name] = item.value;
             return obj;
           }, {});
+        
+          // Find the DLight instance with the matching shortAddress
+          var daliLightData = Dlights.find(function(light) {
+            return light.shortAddress === parseInt(formData.shortAddress);
+          });
+        
+          // Update the DLight instance properties with the form data
+          daliLightData.name = formData.lightName;
+          daliLightData.room = formData.lightRoom;
+          daliLightData.level = parseInt(formData.currentLevel);
+          daliLightData.maxLevel = parseInt(formData.maxLevel);
+          daliLightData.minLevel = parseInt(formData.minLevel);
+          daliLightData.failLevel = parseInt(formData.failLevel);
+          daliLightData.powerOnLevel = parseInt(formData.powerOnLevel);
+          daliLightData.fadeTime = parseInt(formData.fadeTime);
+          daliLightData.fadeRate = parseInt(formData.fadeRate);
+        
+          // Update the group memberships and scene levels array
+          for (var i = 0; i <= 15; i++) {
+            var groupMembership = parseInt(formData["groupMembership" + i]);
+            daliLightData.groups[i] = (groupMembership === "1");
+            daliLightData.sceneLevels[i] = parseInt(formData["sceneLevel" + i]);
+          }
+
+            // Create a JSON object with the updated DLight data
+        var updatedData = {
+          shortAddress: daliLightData.shortAddress,
+          name: daliLightData.name,
+          room: daliLightData.room,
+          level: daliLightData.level,
+          maxLevel: daliLightData.maxLevel,
+          minLevel: daliLightData.minLevel,
+          failLevel: daliLightData.failLevel,
+          powerOnLevel: daliLightData.powerOnLevel,
+          fadeTime: daliLightData.fadeTime,
+          fadeRate: daliLightData.fadeRate,
+          groups: daliLightData.groups,
+          sceneLevels: daliLightData.sceneLevels
+        };
+
+        // Send the updated data to the server via the WebSocket
+        var socketData = {
+          command: "updateLight",
+          lightData: updatedData
+        };
+        socket.send(JSON.stringify(socketData));
+          $(this).dialog('close');
+          CreateHtmlLights();
+
+        }
+        // "Save": function() {
+        //   var form = $(this).find( "form" ).on( "submit", function( event ) {
+        //     event.preventDefault();
+        //   });
+
+        //   var formData = form.prevObject.serializeArray().reduce(function(obj, item) {
+        //     obj[item.name] = item.value;
+        //     return obj;
+        //   }, {});
 
         
-          var jsonFormData = JSON.stringify(formData);
-          console.log(formData);
-          socket.send(jsonFormData);
-          $(this).dialog('close');
-        }
+        //   var jsonFormData = JSON.stringify(formData);
+        //   console.log(formData);
+        //   // socket.send(jsonFormData);
+        //   $(this).dialog('close');
+        // }
       }
     });
-  });
-  $("#maxLevelSlider").change(function() {
-    var maxLevelValue = $(this).val();
-    if (maxLevelValue < $("#minLevelSlider").val()) {
-      $("#minLevelSlider").val(maxLevelValue);
-    }
-    $("#maxLevel").val(maxLevelValue);
-  });
-  
-  $("#minLevelSlider").change(function() {
-    var minLevelValue = $(this).val();
-    if (minLevelValue > $("#maxLevelSlider").val()) {
-      $("#maxLevelSlider").val(minLevelValue);
-    }
-    $("#minLevel").val(minLevelValue);
-  });
-  
-  $("#failLevelSlider").change(function() {
-    var failLevelValue = $(this).val();
-    $("#failLevel").val(failLevelValue);
-  });
-  
-  $("#powerOnLevelSlider").change(function() {
-    var powerOnLevelValue = $(this).val();
-    $("#powerOnLevel").val(powerOnLevelValue);
-  });
 
-  $("#fadeRateSlider").change(function() {
-    var fadeRateValue = $(this).val();
-    $("#fadeRateValue").text(getFadeRateText(fadeRateValue));
-  });
-  $("#fadeTimeSlider").change(function() {
-    var fadeTimeValue = $(this).val();
-    $("#fadeTimeValue").text(getFadeTimeText(fadeTimeValue));
-  });
-  $( ".controlgroup" ).controlgroup()
-    
-  $(".light-slider").on("input", function() {
-    var sliderValue = $(this).val();
-    var lightControl = $(this).closest(".lightControl");
-    var shortAddress = lightControl.attr("id").split("-")[2];
-    
-    var daliLight = Dlights.find(function(light) {
-    return light.shortAddress == shortAddress;
+    $(".curLevelSlider").on("input", function() {
+      var curLevelValue = parseInt($(this).val());
+      $("#curLevelValue").val(curLevelValue+"%");
+      var idValue = $(this).attr('id');
+      var shortAddress = idValue.split("-")[2];
+      var daliLight = Dlights.find(function(light) {
+        return light.shortAddress == shortAddress;
+        });
+      if (curLevelValue == 0) {
+        var daliValue = 0;
+        }
+        else if (curLevelValue == 1){
+        var daliValue = daliLight.minLevel;
+        }
+        else {
+        var percentage = curLevelValue / 100;
+        var daliValue = daliLight.minLevel + (daliLight.maxLevel - daliLight.minLevel) * percentage;
+        daliValue = Math.round(daliValue);
+        }
+
+        // console.log("Short Address:" + shortAddress);
+        // console.log("  Slider value: " + curLevelValue + "%");
+        // console.log("  DALI value: " + daliValue);
+        setTimeout(function() {
+          socket.send(JSON.stringify({
+            "command": "setLevel",
+            "shortAddress": shortAddress,
+            "level":daliValue
+          }));
+        }, 200); // delay of 500 milliseconds
+    }); 
+
+    $("#maxLevelSlider").on("input", function() {
+      var maxLevelValue = parseInt($(this).val());
+      if (maxLevelValue < $("#minLevelSlider").val()) {
+        $("#minLevelSlider").val(maxLevelValue);
+        $("#minLevelValue").val(maxLevelValue);
+      }
+      $("#maxLevelValue").val(maxLevelValue);
     });
     
-    if (sliderValue == 0) {
-    var color = "hsl(50, 100%, 0%, 0)";
-    var daliValue = 0;
-    }
-    else if (sliderValue == 1){
-    var color = "hsl(50, 100%, 1%, 0)";
-    var daliValue = daliLight.minLevel;
-    }
-    else {
-    var percentage = sliderValue / 100;
-    var color = "hsl(50, 100%, " + (percentage * 40) + "%, " + percentage  + ")";
-    var daliValue = daliLight.minLevel + (daliLight.maxLevel - daliLight.minLevel) * percentage;
-    daliValue = Math.round(daliValue);
-    }
-    
-    lightControl.css("background-color", color);
-    console.log("Short Address:" + shortAddress);
-    console.log("  Slider value: " + sliderValue + "%");
-    console.log("  DALI value: " + daliValue);
+    $("#minLevelSlider").on("input", function() {
+      var minLevelValue = parseInt($(this).val());
+      if (minLevelValue > $("#maxLevelSlider").val()) {
+        $("#maxLevelSlider").val(minLevelValue);
+        $("#maxLevelValue").val(minLevelValue);
+      }
+      $("#minLevelValue").val(minLevelValue);
     });
-  };
+    
+    $("#failLevelSlider").on("input", function() {
+      var failLevelValue = parseInt($(this).val());
+      $("#failLevelValue").val(failLevelValue);
+    });    
+    $("#curLevelSlider").on("input", function() {
+      var curLevelValue = parseInt($(this).val());
+      $("#curLevelValue").val(curLevelValue);
+    });
+    
+    $("#powerOnLevelSlider").on("input", function() {
+      var powerOnLevelValue = parseInt($(this).val());
+      $("#powerOnLevelValue").val(powerOnLevelValue);
+    });
+  
+    $("#fadeRateSlider").on("input", function() {
+      var fadeRateValue = parseInt($(this).val());
+      $("#fadeRateValue").text(getFadeRateText(fadeRateValue));
+    });
+    $("#fadeTimeSlider").on("input", function() {
+      var fadeTimeValue = parseInt($(this).val());
+      $("#fadeTimeValue").text(getFadeTimeText(fadeTimeValue));
+    });
+   $( ".controlgroup" ).controlgroup()
+  
+});
+};
+    
+
+ 
 
 
 function CreateHtmlLights(){
-  // todo, clear nav , rooms and accordion
-  console.log(Dlights);
-  // $("#navlist").empty();
-  // $("#navTabs").empty();
+  var mainhtml = `
+  <div id="Tabs">
+    <ul id="navlist">
+    </ul>
+    <!-- dynamically generated sections for each room -->
+    <div id="config">
+      <h2>Configuration Page</h2>
+      <ul>
+        <li>
+          <button id="init-all" class="ui-button ui-corner-all">INIT ALL</button>
+          <button id="init-new" class="ui-button ui-corner-all">INIT NEW</button>
+          <button id="search" class="ui-button ui-corner-all">SEARCH</button>
+          <button id="save" class="ui-button ui-corner-all">SAVE</button>
+        </li>
+        <li>
+          <h3>Lights</h3>
+          <div id="roomsAccordion">
+            <!-- dynamically generated accordion for each room and its lights -->
+          </div>
+        </li>
+      </ul>
+    </div>
+  </div>
+`;
+
+  // console.log(Dlights);
+  $("main").empty();
+  // Select the elements you want to keep inside the div
+  $("main").html(mainhtml);
+
   var rooms = [];
   Dlights.forEach(function(light) {
     if (!rooms.includes(light.room) && light.room !== "Unknown") {
@@ -307,7 +414,7 @@ function CreateHtmlLights(){
   });
 
   rooms.forEach(function(room) {
-    console.log("room value: ", room);
+    // console.log("room value: ", room);
       // Create a navigation link for each room
       var navLink = $("<li>").append(
         $("<a>", {
@@ -325,7 +432,7 @@ function CreateHtmlLights(){
         }),
         $("<ul>")
       );
-      $("#navTabs").append(roomDiv);
+      $("#Tabs").append(roomDiv);
     });
       var navLink2 =$("<li>").append(
         $("<a>", {
@@ -351,15 +458,55 @@ function CreateHtmlLights(){
     }
   });
   renderAccordion();
-  $( "#navTabs" ).tabs();
+  $( "#Tabs" ).tabs();
   $(".ui-widget-content ul").css("list-style", "none");
+
+  $(".light-slider").on("input", function() {
+    var sliderValue = $(this).val();
+    var lightControl = $(this).closest(".lightControl");
+    var shortAddress = lightControl.attr("id").split("-")[2];
+
+    var daliLight = Dlights.find(function(light) {
+    return light.shortAddress == shortAddress;
+    });
+    
+    if (sliderValue == 0) {
+    var color = "hsl(50, 100%, 0%, 0)";
+    var daliValue = 0;
+    }
+    else if (sliderValue == 1){
+    var color = "hsl(50, 100%, 1%, 0)";
+    var daliValue = daliLight.minLevel;
+    }
+    else {
+    var percentage = sliderValue / 100;
+    var color = "hsl(50, 100%, " + (percentage * 40) + "%, " + percentage  + ")";
+    var daliValue = daliLight.minLevel + (daliLight.maxLevel - daliLight.minLevel) * percentage;
+    daliValue = Math.round(daliValue);
+    }
+    lightControl.css("background-color", color);
+    //  console.log("Short Address:" + shortAddress);
+    //  console.log("  Slider value: " + sliderValue + "%");
+    //  console.log("  DALI value: " + daliValue);
+    setTimeout(function() {
+      socket.send(JSON.stringify({
+        "command": "setLevel",
+        "shortAddress": shortAddress,
+        "level":daliValue
+      }));
+    }, 200); 
+
+    });
+    socket.send(JSON.stringify({
+      command: "levels"
+    }));
 }
 
 
 $(document).ready(function() {
 
-  var socket = new WebSocket("ws://192.168.103.77:81");
-  // var socket = new WebSocket("ws://" + window.location.hostname + ":81");
+  socket = new WebSocket(sockurl);
+
 
   
 socket.onopen = function() {
@@ -373,208 +520,37 @@ socket.onmessage = function(event) {
   console.log("Message received: " + event.data);
   var data = JSON.parse(event.data);
   
-  if (data.hasOwnProperty("frlightcnt")) {
-    var frlightcnt = data.frlightcnt;
-    var friendlyLights = data.friendlylights;
-
-    // Do something with the frlightcnt and friendlylights information
-    // Create an array to store the unique room names
-    var rooms = [];
-    // Loop through the friendlyLights array to extract the unique room names
-    friendlyLights[0].friendlylights.forEach(function(light) {
-      if (!rooms.includes(light.room)) {
-        rooms.push(light.room);
-      }
-    });
-    // Loop through the rooms array to create the navigation links and room sections
-    rooms.forEach(function(room) {
-      // Create a navigation link for each room
-      var navLink = $("<li>").append(
-        $("<a>", {
-          href: "#" + room.toLowerCase(),
-          text: room
-        })
-      );
-      $("#navlist").append(navLink);
-      // Create a room section for each room
-      var roomDiv = $("<div>", {
-        id: room.toLowerCase()
-      }).append(
-        $("<h2>", {
-          text: room
-        }),
-        $("<ul>")
-      );
-      $("#navTabs").append(roomDiv);
-    });
-      var navLink2 =$("<li>").append(
-        $("<a>", {
-          href: "#config",
-          text: "Configuration"
-        })
-      );
-      $("#navlist").append(navLink2);
-    // Loop through the friendlyLights array again to add the lights to their respective room sections
-    friendlyLights[0].friendlylights.forEach(function(light) {
-      var room = light.room.toLowerCase();
-      var lightName = light.name;
-      var shortAddress = light.shortAddress;
-      var level = light.level;
-      var lightItem = 
-      '<div class="lightControl" id="light-number-' + shortAddress + '">' +
-        '<h3>' + lightName + '</h3>' +
-        '<div class="slider-container">' +
-          '<input type="range" min="0" max="100" class="light-slider" id="light-slider-' + shortAddress + '">' +
-        '</div>' +
-      '</div>';
-      $("#" + room + " ul").append(lightItem);
-    });
-
-
-    var rooms = [];
-    friendlyLights[0].friendlylights.forEach(function(light) {
-        if (rooms.indexOf(light.room) === -1) {
-            rooms.push(light.room);
-        }
-    });
-    
-    var accordionHTML = '';
-    rooms.forEach(function(room) {
-        accordionHTML += '<h3>' + room + '</h3><div><div class="light-buttons">';
-        friendlyLights[0].friendlylights.forEach(function(light) {
-            if (light.room === room) {
-                accordionHTML += '<button data-light="' + light.shortAddress + '" class="ui-button ui-corner-all">' + 'DALI A' + light.shortAddress + ' ' + light.name + '</button> ';
-            }
-        });
-        accordionHTML += '</div></div>';
-    });
-    
-    $('#roomsAccordion').html(accordionHTML);
-    $("#roomsAccordion").accordion({
-        collapsible: true,
-        active: false,
-        heightStyle: "content"
-    });
-    
-    $('.light-buttons button').on('click', function() {
-        var lightShortAddress = $(this).data('light');
-        var lightData = friendlyLights[0].friendlylights.find(function(light) {
-            return light.shortAddress === lightShortAddress;
-        });
-        var daliLightData = daliLights[0].lights.find(function(light) {
-            return light.shortAddress === lightShortAddress;
-        });
-    
-        var formHTML = '<form><input type="hidden" name="command" value="saveLightData">';
-        formHTML += '<div class="controlgroup"><div class="form-group"><label for="lightName">Name:</label><input type="text" class="form-control" id="lightName" name="lightName" value="' + lightData.name + '"></div>';
-        formHTML += '<div class="form-group"><label for="lightRoom">Room:</label><input type="text" class="form-control" id="lightRoom" name="lightRoom" value="' + lightData.room + '"></div>';
-        formHTML += '<div class="form-group"><label for="maxLevel">Max Level:</label><input type="text" class="form-control" id="maxLevel" name="maxLevel" value="' + daliLightData.maxLevel + '"></div>';
-        formHTML += '<div class="form-group"><label for="minLevel">Min Level:</label><input type="text" class="form-control" id="minLevel" name="minLevel" value="' + daliLightData.minLevel + '"></div>';
-        formHTML += '<div class="form-group"><label for="failLevel">System Fail Level:</label><input type="text" class="form-control" id="failLevel" name="failLevel" value="' + daliLightData.failLevel + '"></div>';
-        formHTML += '<div class="form-group"><label for="powerOnLevel">Power On Level:</label><input type="text" class="form-control" id="powerOnLevel" name="powerOnLevel" value="' + daliLightData.powerOnLevel + '"></div>';
-        formHTML += '<div class="form-group"><label for="fadeTime">Fade Time:</label><input type="text" class="form-control" id="fadeTime" name="fadeTime" value="' + daliLightData.fadeTime + '"></div>';
-        formHTML += '<div class="form-group"><label for="fadeRate">Fade Rate:</label><input type="text" class="form-control" id="fadeRate" name="fadeRate" value="' + daliLightData.fadeRate + '"></div>';
-        formHTML += '<table><tr>'
-        for (var i = 0; i <= 15; i++) {
-          formHTML += '<td><div class="form-group"><label for="groupMembership' + i + '">Group ' + i + ':</label><input type="checkbox" class="form-check-input" name="groupMembership' + i + '" id="groupMembership' + i + '" value="1" ' + (daliLightData.groupMemberships[i] ? 'checked' : '') + '></div></td>';
-          formHTML += '<td><div class="form-group"><label for="sceneLevel' + i + '">Scene ' + i + ':</label><input type="number" class="form-control" name="sceneLevel' + i + '" id="sceneLevel' + i + '" min="0" max="254" value="' + daliLightData.sceneLevels[i] + '"></div></td></tr><tr>';
-        }
-        formHTML.slice(0,-5);
-
-    formHTML += '</tr></div><input type="submit" tabindex="-1" style="position:absolute; top:-1000px">';
-    formHTML += '</form>';
-
-    // open the dialog with the form
-    $(formHTML).dialog({
-      modal: true,
-      resizable: false,
-      width: 'auto',
-      height: 'auto',
-      close: function() {
-        $(this).remove();
-      },
-      buttons: {
-        "Cancel": function() {
-          $(this).dialog('close');
-        },
-        "Save": function() {
-          var form = $(this).find( "form" ).on( "submit", function( event ) {
-            event.preventDefault();
-          });
-
-          var formData = form.prevObject.serializeArray().reduce(function(obj, item) {
-            obj[item.name] = item.value;
-            return obj;
-          }, {});
-
-        
-          var jsonFormData = JSON.stringify(formData);
-          console.log(formData);
-          socket.send(jsonFormData);
-          $(this).dialog('close');
-        }
-      }
-    });
-    
-
-    });
-    
-    $( ".controlgroup" ).controlgroup()
-    
-      $(".light-slider").on("input", function() {
-        var sliderValue = $(this).val();
-        var lightControl = $(this).closest(".lightControl");
-        var shortAddress = lightControl.attr("id").split("-")[2];
-        
-        var daliLight = daliLights[0].lights.find(function(light) {
-        return light.shortAddress == shortAddress;
-        });
-        
-        if (sliderValue == 0) {
-        var color = "hsl(50, 100%, 0%, 0)";
-        var daliValue = 0;
-        }
-        else if (sliderValue == 1){
-        var color = "hsl(50, 100%, 1%, 0)";
-        var daliValue = daliLight.minLevel;
-        }
-        else {
-        var percentage = sliderValue / 100;
-        var color = "hsl(50, 100%, " + (percentage * 40) + "%, " + percentage  + ")";
-        var daliValue = daliLight.minLevel + (daliLight.maxLevel - daliLight.minLevel) * percentage;
-        daliValue = Math.round(daliValue);
-        }
-        
-        lightControl.css("background-color", color);
-        console.log("Short Address:");
-        console.log("  Slider value: " + sliderValue + "%");
-        console.log("  DALI value: " + daliValue);
-        });
-    $( "#navTabs" ).tabs();
-    $(".ui-widget-content ul").css("list-style", "none");
-  }
-  else if(data.hasOwnProperty("command")) {
+  if(data.hasOwnProperty("command")) {
     switch (data.command) {
       case "lights":
         // register lights command
         var lights = data.lights;
         Dlights = [];
         lights.forEach(function(light) {
-          var dlight = new DLight(light.shortAddress,light.name,light.room,light.minLevel,light.maxLevel,light.groups,light.sceneLevels,light.failLevel,light.powerOnLevel,light.physmin,light.fadeTime,light.fadeRate);
+          var dlight = new DLight(light.shortAddress,light.name,light.room,light.minLevel,light.maxLevel,light.groups,light.sceneLevels,light.failLevel,light.powerOnLevel,light.physmin,light.fadeTime,light.fadeRate,0);
           Dlights.push(dlight);
         });
         CreateHtmlLights();
+
         break;
-      case "levels":
-        data.lights.forEach(function(light) {
-          var shortAddress = light.shortAddress;
-          var level = light.level;
-          var percentage = (level - daliLightMinLevel) / (daliLightMaxLevel - daliLightMinLevel) * 100;
-          var color = "hsl(50, 100%, " + (percentage * 40) + "%, " + percentage + ")";
-          $("#light-number-" + shortAddress).css("background-color", color);
-          $("#light-slider-" + shortAddress).val(percentage);
+        case "levels":
+          data.lights.forEach(function(light) {
+            var shortAddress = light.shortAddress;
+
+            var level = light.level;
+            var dlight = Dlights.find(function(dlight) {
+              return dlight.shortAddress == shortAddress;
+            });
+
+            var range = dlight.maxLevel - dlight.minLevel;
+            var percentage = (level - dlight.minLevel) / range *100;
+            var color = "hsl(50, 100%, " + (percentage * 40/100) + "%, " + percentage/100 + ")";
+            // console.log(color+" loaded");
+            $("#light-number-" + shortAddress).css("background-color", color);
+            $("#light-slider-" + shortAddress).val(percentage);
+            dlight.level=level;
           });
-        break;
+          break;
       default:
         console.log("Unknown command: " + data.command);
     }
@@ -587,14 +563,7 @@ socket.onclose = function() {
 };
 
 
-  
 
-    // $("nav a").click(function(event) {
-    //     event.preventDefault();
-    //     var target = $(this).attr("href");
-    //     $("main section").hide();
-    //     $(target).show();
-    //   });
 
       $("#init-all").click(function() {
         console.log("INIT ALL button clicked");
@@ -619,25 +588,6 @@ socket.onclose = function() {
         heightStyle: "content"
     });
     
-    // var newLights = [];
-
-    // daliLights[0].lights.forEach(function(daliLight) {
-    //   var shortAddressExistsInFriendlyLights = false;
-    //   friendlyLights[0].friendlylights.forEach(function(friendlyLight) {
-    //     if (friendlyLight.shortAddress === daliLight.shortAddress) {
-    //       shortAddressExistsInFriendlyLights = true;
-    //     }
-    //   });
-    
-    //   if (!shortAddressExistsInFriendlyLights) {
-    //     newLights.push({shortAddress: daliLight.shortAddress});
-    //   }
-    // });
-    
-    // // Add the lights in the "newLights" array to the "newlights-list" list in the HTML
-    // newLights.forEach(function(newLight) {
-    //   $("#newlights-list").append("<li>Short address: " + newLight.shortAddress + "</li>");
-    // });
 
 
   });

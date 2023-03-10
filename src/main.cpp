@@ -10,8 +10,7 @@
 #include <vector>
 #include "methods.h"
 
-// Create bdali object 
-BDali bdali;
+
 
 // Create AsyncWebServer object on port 80
 AsyncWebServer server(80);
@@ -166,14 +165,13 @@ void sendJSON() {
 
 
 void setup() {
-  // Start BDali
-  bdali.begin(SDA_PIN,SCL_PIN);
+
+  bdali->begin(SDA_PIN,SCL_PIN);
 
   Serial.begin(115200);
 
   initSPIFFS();
 
-  // Load values saved in SPIFFS
   ssid = readFile(SPIFFS, ssidPath);
   pass = readFile(SPIFFS, passPath);
   ip = readFile(SPIFFS, ipPath);
@@ -185,19 +183,15 @@ void setup() {
 
 
   if(initWiFi()) {
-    // Route for root / web page
     Serial.println("webserver initiated");
     server.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
       request->send(SPIFFS, "/index.html", "text/html");
     });
     server.serveStatic("/", SPIFFS, "/");
     server.begin();
-    // loading of the dlight instances
     loadLights();
-      // Websockets setup
   webSocket.begin();
   webSocket.onEvent(webSocketEvent);
-     // Initialize OTA
     ArduinoOTA
       .onStart([]() {
         String type;
@@ -312,94 +306,5 @@ void loop() {
   //   sendJSON();
   //   lastWsLVSendTime = millis(); // Update last send time
   // }
-
-  //   // Find the list of groups that at least one light is a member of
-  //   std::vector<uint8_t> groupNumbers = bdali.findGroups();
-
-  //   // Print the list of groups to the serial monitor
-  //   Serial.print("Groups found: ");
-  //   for (int i = 0; i < groupNumbers.size(); i++) {
-  //       Serial.print(groupNumbers[i]);
-  //       Serial.print(" ");
-  //   }
-  //   Serial.println();
-
-
-
-
-    // // Discover the short addresses of all the DALI lights on the bus
-    // std::vector<uint8_t> shortAddresses = bdali.findLights();
-
-    // // Print the short addresses to the serial monitor
-    // Serial.print("Found ");
-    // Serial.print(shortAddresses.size());
-    // Serial.println(" DALI lights on the bus:");
-    // for (int i = 0; i < shortAddresses.size(); i++) {
-    //     Serial.print("  - Short address ");
-    //     Serial.println(shortAddresses[i]);
-    // }
-// uint8_t found = bdali.commission(DA_YES);
-// Serial.print(found);
-
-
-
-    //   // Get the scene level information for light 1
-    // uint8_t* sceneLevels = bdali.getSceneLevels(14);
-
-    // // Print the scene level information for each scene
-    // for (int i = 0; i < 16; i++) {
-    //     Serial.print("Scene ");
-    //     Serial.print(i);
-    //     Serial.print(": ");
-    //     Serial.println(sceneLevels[i]);
-    // }
-
-    // // Free the memory allocated for the sceneLevels array
-    // delete[] sceneLevels;
-
-    // Wait for some time before repeating
-    // delay(50000);
-
-
-
-//  if (Serial.available() > 0) {
-//     String input = Serial.readStringUntil('\n');
-//     String method = input.substring(0, input.indexOf('('));
-//     int param1 = input.substring(input.indexOf('(') + 1, input.indexOf(',')).toInt();
-//     int param2 = input.substring(input.indexOf(',') + 1, input.indexOf(')')).toInt();
-
-//     if (method == "SetLight") {
-//       bdali.setLightLevel(param1,param2);
-//     } 
-//     else if (method == "GetLight") {
-//       Serial.println(bdali.getLightLevel(param1));
-//     } 
-//     else if (method == "SetGroup") {
-//       bdali.setGroupLevel(param1,param2);
-//     }  
-//     else if (method == "GetGroup") {
-//       Serial.println(bdali.getGroupLevel(param1));
-//     } 
-//     else if (method == "FindLights") {
-//       Serial.println(bdali.findLights());
-//     } 
-//     else if (method == "LightOn") {
-//       // only dali2
-//       bdali.setLightOn(param1);
-//     }
-//     else if (method == "LightOff") {
-//       bdali.setLightOff(param1);
-//     }
-//     else if (method == "LightUp") {
-//       bdali.setLightUp(param1);
-//     }
-//     else if (method == "LightDown") {
-//       bdali.setLightDown(param1);
-//     }
-//     else {
-//       Serial.println("Wrong input");
-//       // handle invalid input
-//     }
-//   }
 
 }

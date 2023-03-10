@@ -173,9 +173,7 @@ uint8_t GetQuery(uint8_t dali_adr, uint8_t cmd)
     return Wire.read();
 }
 
-BDali::BDali() {
-     // constructor code
-}
+BDali* BDali::instance = nullptr;
 
 void BDali::begin(int SDA_pin, int SCL_pin) {
         Wire.begin(SDA_pin,SCL_pin);
