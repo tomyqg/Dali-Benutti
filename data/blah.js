@@ -23,7 +23,7 @@ var sockurl ="ws://192.168.103.77:81" //debugging address
 
 //class DScene
 
-function sendMessage(socket, message) {
+function sendMessage(message) {
   if (socket.readyState === WebSocket.OPEN) {
     socket.send(message);
   } else {

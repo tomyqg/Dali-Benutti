@@ -11,7 +11,7 @@
 #include "methods.h"
 
 
-
+BDali* bdali = BDali::getInstance();
 // Create AsyncWebServer object on port 80
 AsyncWebServer server(80);
 
@@ -131,45 +131,13 @@ bool initWiFi() {
   return true;
 }
 
-// example to send a ardjson doc to ws
-void sendJSON() {
-  // Populate the ArduinoJSON object with the specified values
-  StaticJsonDocument<500> jsonDoc;
-  jsonDoc.clear();
-  jsonDoc["command"] = "levels";
-
-  JsonArray friendlyLights = jsonDoc.createNestedArray("lights");
-  JsonObject light1 = friendlyLights.createNestedObject();
-  light1["shortaddress"] = 0;
-  light1["level"] = 254;
-
-  JsonObject light2 = friendlyLights.createNestedObject();
-  light2["shortaddress"] = 1;
-  light2["level"] = 150;
-
-  JsonObject light3 = friendlyLights.createNestedObject();
-  light3["shortaddress"] = 2;
-  light3["level"] = 0;
-
-  // Convert the ArduinoJSON object to a string
-  String jsonString;
-  serializeJson(jsonDoc, jsonString);
-
-  // Send the JSON string over the websocket
-  webSocket.broadcastTXT(jsonString);
-}
-
-
-
-
 
 
 void setup() {
 
   bdali->begin(SDA_PIN,SCL_PIN);
-
+  
   Serial.begin(115200);
-
   initSPIFFS();
 
   ssid = readFile(SPIFFS, ssidPath);
