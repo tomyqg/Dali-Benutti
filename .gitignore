@@ -3,3 +3,7 @@
 .vscode/c_cpp_properties.json
 .vscode/launch.json
 .vscode/ipch
+data/gateway.txt
+data/ip.txt
+data/pass.txt
+data/ssid.txt
