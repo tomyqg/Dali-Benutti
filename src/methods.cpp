@@ -64,34 +64,67 @@ void webSocketEvent(const uint8_t num, WStype_t type, uint8_t * payload, size_t 
             uint8_t lv=uint8_t(doc["level"]);
             doc.clear();
             bdali.setLightLevel(sa,lv);
-          } else if(command == "updateLight"){
-              JsonObject lightData = doc["lightData"];
-              uint8_t shortAddressToFind = lightData["shortAddress"];
-                 for (auto& light : lights) { // iterate through each DLight object in the vector
-                  if (light.shortAddress == shortAddressToFind) { // check if the shortAddress matches
-                    light.fadeRate; // call a method of the matching DLight object
-                    String name = lightData["name"];
-                    String room = lightData["room"];
-                    uint8_t level = lightData["level"];
-                    uint8_t maxLevel = lightData["maxLevel"];
-                    uint8_t minLevel = lightData["minLevel"];
-                    uint8_t failLevel = lightData["failLevel"];
-                    uint8_t powerOnLevel = lightData["powerOnLevel"];
-                    uint8_t fadeTime = lightData["fadeTime"];
-                    uint8_t fadeRate = lightData["fadeRate"];
-                    JsonArray sceneLevels = lightData["sceneLevels"];
-                        for (int i = 0; i < sceneLevels.size(); i++) {
-                          int sceneLevel = sceneLevels[i];
-                          //set scenelevels , If scenelevel 255 delete from scene
-                        }
-                    JsonArray groups = lightData["groups"];
-                        for (int i = 0; i < groups.size(); i++) {
-                          bool groupMembership = groups[i];
-                          //set groupmemberships
-                        }
-                  };
+          }else if(command == "updateLight") {
+            JsonObject lightData = doc["lightData"];
+            uint8_t shortAddressToFind = lightData["shortAddress"];
+            for (auto& light : lights) { // iterate through each DLight object in the vector
+              if (light.getShortAddress() == shortAddressToFind) { // check if the shortAddress matches
+                // Update DLight instance properties with values received from the server
+                light.setName(lightData["name"]);
+                light.setRoom(lightData["room"]);
+                light.setLevel(lightData["level"]);
+                light.setMaxLevel(lightData["maxLevel"]);
+                light.setMinLevel(lightData["minLevel"]);
+                light.setFailLevel(lightData["failLevel"]);
+                light.setPowerOnLevel(lightData["powerOnLevel"]);
+                light.setFadeTime(lightData["fadeTime"]);
+                light.setFadeRate(lightData["fadeRate"]);
+                
+                // Update DLight instance groups with values received from the server
+                JsonArray groups = lightData["groups"];
+                for (int i = 0; i < groups.size(); i++) {
+              bool groupMembership = groups[i];
+              light.setGroup(i, groupMembership);
                 }
-          };
+                
+                // Update DLight instance scene levels with values received from the server
+                JsonArray sceneLevels = lightData["sceneLevels"];
+                for (int i = 0; i < sceneLevels.size(); i++) {
+                  int sceneLevel = sceneLevels[i];
+                  light.setSceneLevel(i, sceneLevel);
+                }
+              }
+            }
+          }
+
+          //  else if(command == "updateLight"){
+          //     JsonObject lightData = doc["lightData"];
+          //     uint8_t shortAddressToFind = lightData["shortAddress"];
+          //        for (auto& light : lights) { // iterate through each DLight object in the vector
+          //         if (light.shortAddress == shortAddressToFind) { // check if the shortAddress matches
+          //           light.fadeRate; // call a method of the matching DLight object
+          //           String name = lightData["name"];
+          //           String room = lightData["room"];
+          //           uint8_t level = lightData["level"];
+          //           uint8_t maxLevel = lightData["maxLevel"];
+          //           uint8_t minLevel = lightData["minLevel"];
+          //           uint8_t failLevel = lightData["failLevel"];
+          //           uint8_t powerOnLevel = lightData["powerOnLevel"];
+          //           uint8_t fadeTime = lightData["fadeTime"];
+          //           uint8_t fadeRate = lightData["fadeRate"];
+          //           JsonArray sceneLevels = lightData["sceneLevels"];
+          //               for (int i = 0; i < sceneLevels.size(); i++) {
+          //                 int sceneLevel = sceneLevels[i];
+          //                 //set scenelevels , If scenelevel 255 delete from scene
+          //               }
+          //           JsonArray groups = lightData["groups"];
+          //               for (int i = 0; i < groups.size(); i++) {
+          //                 bool groupMembership = groups[i];
+          //                 //set groupmemberships
+          //               }
+          //         };
+          //       }
+          // };
         return;
       }
   };
@@ -146,9 +179,9 @@ void loadLights() {
         uint8_t physmin = bdali.getPhysMinLevel(*sa);
         uint8_t fadeTime = bdali.getFadeTime(*sa);
         uint8_t fadeRate = bdali.getFadeRate(*sa);
-  
+        uint8_t level = bdali.getLightLevel(*sa);
   // Create an instance of DLight with the above parameters
-  DLight light(shortAddress, name, room, minLevel, maxLevel, groups, sceneLevels, failLevel, powerOnLevel, physmin, fadeTime, fadeRate);
+  DLight light(bdali, shortAddress, name, room, minLevel, maxLevel, groups, sceneLevels, failLevel, powerOnLevel, physmin, fadeTime, fadeRate, level);
 
   // Add the DLight instance to the lights vector
   lights.push_back(light);
@@ -170,8 +203,8 @@ void sendLevels(){
       for (auto& light : lights) {
         // create a JsonObject and set its properties
         JsonObject lightObject = lightsArray.createNestedObject();
-        lightObject["shortAddress"] = light.shortAddress;
-        lightObject["level"] = bdali.getLightLevel(light.shortAddress);
+        lightObject["shortAddress"] = light.getShortAddress();
+        lightObject["level"] = light.getLevel();
   // Query the current level for the DALI light using bdali.getLightLevel()
       }
         // serialize the document to a String
@@ -197,29 +230,29 @@ void sendDLights(uint8_t num){
       for (auto& light : lights) {
         // create a JsonObject and set its properties
         JsonObject lightObject = lightsArray.createNestedObject();
-        lightObject["shortAddress"] = light.shortAddress;
-        lightObject["name"] = light.name;
-        lightObject["room"] = light.room;
-        lightObject["minLevel"] = light.minLevel;
-        lightObject["maxLevel"] = light.maxLevel;
+        lightObject["shortAddress"] = light.getShortAddress();
+        lightObject["name"] = light.getName();
+        lightObject["room"] = light.getRoom();
+        lightObject["minLevel"] = light.getMinLevel();
+        lightObject["maxLevel"] = light.getMaxLevel();
 
         // create a JsonArray for the groups and add them to the JsonObject
         JsonArray groupsArray = lightObject.createNestedArray("groups");
         for (int i = 0; i < 16; i++) {
-          groupsArray.add(light.groups[i]);
+          groupsArray.add(light.getGroup(i));
         }
 
         // create a JsonArray for the sceneLevels and add them to the JsonObject
         JsonArray sceneLevelsArray = lightObject.createNestedArray("sceneLevels");
         for (int i = 0; i < 16; i++) {
-          sceneLevelsArray.add(light.sceneLevels[i]);
+          sceneLevelsArray.add(light.getSceneLevel(i));
         }
 
-        lightObject["failLevel"] = light.failLevel;
-        lightObject["powerOnLevel"] = light.powerOnLevel;
-        lightObject["physmin"] = light.physmin;
-        lightObject["fadeTime"] = light.fadeTime;
-        lightObject["fadeRate"] = light.fadeRate;
+        lightObject["failLevel"] = light.getFailLevel();
+        lightObject["powerOnLevel"] = light.getPowerOnLevel();
+        lightObject["physmin"] = light.getPhysmin();
+        lightObject["fadeTime"] = light.getFadeTime();
+        lightObject["fadeRate"] = light.getFadeRate();
       }
 
       // serialize the document to a String

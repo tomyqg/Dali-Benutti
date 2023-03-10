@@ -76,28 +76,119 @@ public:
 };
 
 class DLight {
-  public:
-    DLight() {} // Default constructor
+public:
+// DLight() {};
 
-    DLight(uint8_t shortAddress, String name, String room, uint8_t minLevel, uint8_t maxLevel, uint8_t groups[], uint8_t sceneLevels[], uint8_t failLevel, uint8_t powerOnLevel, uint8_t physmin, uint8_t fadeTime, uint8_t fadeRate)
-      : shortAddress(shortAddress), name(name), room(room), minLevel(minLevel), maxLevel(maxLevel), failLevel(failLevel), powerOnLevel(powerOnLevel), physmin(physmin), fadeTime(fadeTime), fadeRate(fadeRate) {
-        for (int i = 0; i < 16; i++) {
-          this->groups[i] = groups[i];
-          this->sceneLevels[i] = sceneLevels[i];
-        }
+  DLight(BDali& bdali, uint8_t shortAddress, String name, String room, uint8_t minLevel, uint8_t maxLevel, uint8_t groups[], uint8_t sceneLevels[], uint8_t failLevel, uint8_t powerOnLevel, uint8_t physmin, uint8_t fadeTime, uint8_t fadeRate,uint8_t level)
+    : bdali(bdali), shortAddress(shortAddress), name(name), room(room), minLevel(minLevel), maxLevel(maxLevel), failLevel(failLevel), powerOnLevel(powerOnLevel), physmin(physmin), fadeTime(fadeTime), fadeRate(fadeRate),level(level) {
+      for (int i = 0; i < 16; i++) {
+        this->groups[i] = groups[i];
+        this->sceneLevels[i] = sceneLevels[i];
+      }
+  }
+  DLight() : bdali(), shortAddress(0), name(""), room(""), minLevel(0), maxLevel(0), failLevel(0), powerOnLevel(0), physmin(0), fadeTime(0), fadeRate(0), level(0) {
+    for (int i = 0; i < 16; i++) {
+      this->groups[i] = 0;
+      this->sceneLevels[i] = 0;
     }
+  }
 
-    uint8_t shortAddress;
-    String name;
-    String room;
-    uint8_t minLevel;
-    uint8_t maxLevel;
-    uint8_t groups[16];
-    uint8_t sceneLevels[16];
-    uint8_t failLevel;
-    uint8_t powerOnLevel;
-    uint8_t physmin;
-    uint8_t fadeTime;
-    uint8_t fadeRate;
+
+  // Getter functions
+  uint8_t getShortAddress() {
+    return shortAddress;
+  }
+  String getName() {
+    return name;
+  }
+  String getRoom() {
+    return room;
+  }
+  uint8_t getMinLevel() {
+    return minLevel;
+  }
+  uint8_t getMaxLevel() {
+    return maxLevel;
+  }
+  uint8_t getGroup(int index) {
+    return groups[index];
+  }
+  uint8_t getSceneLevel(int index) {
+    return sceneLevels[index];
+  }
+  uint8_t getFailLevel() {
+    return failLevel;
+  }
+  uint8_t getPowerOnLevel() {
+    return powerOnLevel;
+  }
+  uint8_t getPhysmin() {
+    return physmin;
+  }
+  uint8_t getFadeTime() {
+    return fadeTime;
+  }
+  uint8_t getFadeRate() {
+    return fadeRate;
+  }
+  uint8_t getLevel() {
+    level = bdali.getLightLevel(shortAddress);
+    return level;
+  }
+  // Setter functions
+  void setName(String newName) {
+    name = newName;
+  }
+  void setRoom(String newRoom) {
+    room = newRoom;
+  }
+  void setMinLevel(uint8_t newMinLevel) {
+    minLevel = newMinLevel;
+  }
+  void setMaxLevel(uint8_t newMaxLevel) {
+    maxLevel = newMaxLevel;
+  }
+  void setGroup(int index, uint8_t value) {
+    groups[index] = value;
+  }
+  void setSceneLevel(int index, uint8_t value) {
+    sceneLevels[index] = value;
+  }
+  void setFailLevel(uint8_t newFailLevel) {
+    failLevel = newFailLevel;
+  }
+  void setPowerOnLevel(uint8_t newPowerOnLevel) {
+    powerOnLevel = newPowerOnLevel;
+  }
+  void setPhysmin(uint8_t newPhysmin) {
+    physmin = newPhysmin;
+  }
+  void setFadeTime(uint8_t newFadeTime) {
+    fadeTime = newFadeTime;
+  }
+  void setFadeRate(uint8_t newFadeRate) {
+    fadeRate = newFadeRate;
+  }
+  void setLevel(uint8_t newLevel) {
+    level = newLevel;
+  };
+
+private:
+  BDali& bdali;
+  uint8_t shortAddress;
+  String name;
+  String room;
+  uint8_t minLevel;
+  uint8_t maxLevel;
+  uint8_t groups[16];
+  uint8_t sceneLevels[16];
+  uint8_t failLevel;
+  uint8_t powerOnLevel;
+  uint8_t physmin;
+  uint8_t fadeTime;
+  uint8_t fadeRate;
+  uint8_t level;
 };
+
+
 #endif // __BENDALI_H__
