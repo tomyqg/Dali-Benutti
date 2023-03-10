@@ -17,8 +17,8 @@ class DLight {
 }
 var Dlights=[];
 var socket;
-var sockurl ="ws://192.168.103.77:81" //debugging address
-// var sockurl ="ws://" + window.location.hostname + ":81";
+
+var sockurl ="ws://" + window.location.hostname + ":81";
 //class DGroup
 
 //class DScene
@@ -388,6 +388,7 @@ function CreateHtmlLights(){
           <button id="init-all" class="ui-button ui-corner-all">INIT ALL</button>
           <button id="init-new" class="ui-button ui-corner-all">INIT NEW</button>
           <button id="search" class="ui-button ui-corner-all">SEARCH</button>
+          <button id="cleardb" class="ui-button ui-corner-all">Clear DB</button>
           <button id="save" class="ui-button ui-corner-all">SAVE</button>
         </li>
         <li>
@@ -576,7 +577,13 @@ socket.onclose = function() {
       $("#search").click(function() {
         console.log("SEARCH button clicked");
       });
-
+      $("#cleardb").click(function() {
+        console.log("cleardb button clicked");
+        var socketData = {
+          command: "eraseLights"
+        };
+        sendMessage(JSON.stringify(socketData))
+      });
       $("#save").click(function() {
         console.log("SAVE button clicked");
       });
