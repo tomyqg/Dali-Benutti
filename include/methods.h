@@ -1,3 +1,13 @@
+/**
+ * @file methods.h
+ * @author Benoit Jansen (benutti@live.nl)
+ * @brief helper file to unclutter main.cpp
+ * @version 0.1
+ * @date 2023-03-12
+ * 
+ * @copyright Copyright (c) 2023
+ * 
+ */
 #ifndef METHODS_H
 #define METHODS_H
 #include <WebSocketsServer.h>

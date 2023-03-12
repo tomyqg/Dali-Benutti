@@ -128,7 +128,7 @@ void loadLights() {
         String room = "Unknown";
         uint8_t minLevel = bdali->getMinLevel(*sa);
         uint8_t maxLevel = bdali->getMaxLevel(*sa);
-        uint8_t groups[16] = { 0 };
+        bool groups[16] = { 0 };
           bool* groupMembership = bdali->getGroupMembership(*sa);
             for(int i = 0; i < 16; i++) {
             groups[i] = groupMembership[i];

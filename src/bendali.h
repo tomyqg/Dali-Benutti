@@ -93,51 +93,28 @@ public:
 };
 
 
-// class BDali {
-// public:
-//     BDali();
-//     void begin(int SDA_pin, int SCL_pin);
-//     std::vector<uint8_t> findLights();
-//     std::vector<uint8_t> findGroups();
-//     void setLightLevel(uint8_t lightNumber, uint8_t level);
-//     void setLightOn(uint8_t lightNumber);
-//     void setLightOff(uint8_t lightNumber);
-//     void setLightUp(uint8_t lightNumber);
-//     void setLightDown(uint8_t lightNumber);
-//     void setGroupLevel(uint8_t groupNumber, uint8_t level);
-//     void setFailLevel(uint8_t lightNumber, uint8_t level);
-//     void setMinLevel(uint8_t lightNumber, uint8_t level);
-//     void setMaxLevel(uint8_t lightNumber, uint8_t level);
-//     void setPowerOnLevel(uint8_t lightNumber, uint8_t level);
-//     void setGroupMembership(uint8_t lightNumber, bool membership[16]);
-//     void setSceneLevels(uint8_t lightNumber, uint8_t sceneLevel[16]);
-//     void setFadeTime(uint8_t lightNumber, uint8_t fadeTime);
-//     void setFadeRate(uint8_t lightNumber, uint8_t fadeRate);
-//     uint8_t getLightLevel(uint8_t lightNumber);
-//     uint8_t getGroupLevel(uint8_t groupNumber);
-//     uint8_t getFailLevel(uint8_t lightNumber);
-//     uint8_t getMinLevel(uint8_t lightNumber);
-//     uint8_t getMaxLevel(uint8_t lightNumber);
-//     uint8_t getPowerOnLevel(uint8_t lightNumber);
-//     bool* getGroupMembership(uint8_t lightNumber);
-//     uint8_t* getSceneLevels(uint8_t lightNumber);
-//     uint8_t getPhysMinLevel(uint8_t lightNumber);
-//     uint8_t getFadeTime(uint8_t lightNumber);
-//     uint8_t getFadeRate(uint8_t lightNumber);
-//     void set_searchaddr(uint32_t adr);
-//     void set_searchaddr_diff(uint32_t adr_new,uint32_t adr_current);
-//     uint8_t compare();
-//     void program_short_address(uint8_t shortadr);
-//     uint8_t query_short_address();
-//     uint32_t find_addr();
-//     uint8_t commission(uint8_t onlyNew);
-//     // uint32_t commission(bool onlyNew = true);
-// };
 
+/**
+ * @brief class that represents a single luminary
+ * @param bdali link to the bdali singleton instance
+ * @param shortAddress unique id on the dali bus
+ * @param name userfriendly name to use in the front-end
+ * @param room userfriendly place to use in the front-end
+ * @param minLevel minimum level of the luminary (boundaries: physmin - maxLevel)
+ * @param maxLevel maximum level of the luminary (boundaries: minLevel - 254)
+ * @param groups[] array of 16 bools representing membership of group 0-15
+ * @param sceneLevels[] array of 16 uint8_t's representing light levels for scene 0-15 with 255 being masked (0xFF)
+ * @param failLevel level luminary has on failure
+ * @param powerOnLevel level luminary has on power on
+ * @param physmin physical minimum level for luminary (driver)
+ * @param fadeTime value between 0-15 representing <0.707s - 90.510s
+ * @param fadeRate value between 1-15 representing 357.796 steps/s - 2.795 steps/s
+ * @param level current level
+ */
 class DLight {
 public:
 // DLight() {};
-  DLight(BDali* bdali, uint8_t shortAddress, String name, String room, uint8_t minLevel, uint8_t maxLevel, uint8_t groups[], uint8_t sceneLevels[], uint8_t failLevel, uint8_t powerOnLevel, uint8_t physmin, uint8_t fadeTime, uint8_t fadeRate,uint8_t level)
+  DLight(BDali* bdali, uint8_t shortAddress, String name, String room, uint8_t minLevel, uint8_t maxLevel, bool groups[], uint8_t sceneLevels[], uint8_t failLevel, uint8_t powerOnLevel, uint8_t physmin, uint8_t fadeTime, uint8_t fadeRate,uint8_t level)
     : bdali(*BDali::getInstance()), shortAddress(shortAddress), name(name), room(room), minLevel(minLevel), maxLevel(maxLevel), failLevel(failLevel), powerOnLevel(powerOnLevel), physmin(physmin), fadeTime(fadeTime), fadeRate(fadeRate),level(level) {
       for (int i = 0; i < 16; i++) {
         this->groups[i] = groups[i];
@@ -168,7 +145,7 @@ public:
   uint8_t getMaxLevel() {
     return maxLevel;
   }
-  uint8_t getGroup(int index) {
+  bool getGroup(int index) {
     return groups[index];
   }
   uint8_t getSceneLevel(int index) {
@@ -238,7 +215,7 @@ private:
   String room;
   uint8_t minLevel;
   uint8_t maxLevel;
-  uint8_t groups[16];
+  bool groups[16];
   uint8_t sceneLevels[16];
   uint8_t failLevel;
   uint8_t powerOnLevel;
