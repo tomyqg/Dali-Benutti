@@ -23,6 +23,16 @@
 #define I2C_REG_SIGNATURE       0xF0   //read only, 6 bytes
 #define I2C_REG_ADDRESS         0xFE   //write only, 2 bytes
 
+
+// # 0x00 STATUS REGISTER bits:
+// #   7 - Bus Error Status, 0 = OK, 1 = Bus fault
+// #   6 - Busy, 0 = ready, 1 = Busy
+// #   5 - Overrun
+// #   4 - Frame Error
+// #   3 - Valid REPLY (reset by reading 0x01)
+// #   2 - Reply Timeframe, <22 Te since last command
+// #   1 - 2 Bytes telegram received (reset by reading 0x01)
+// #   0 - 1 Byte telegram received (reset by reading 0x01)
 //Status bits for register I2C_REG_STATUS
 #define STATUS_1BYTE            0x01
 #define STATUS_2BYTE            0x02
