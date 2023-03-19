@@ -12,7 +12,8 @@
 #define METHODS_H
 #include <WebSocketsServer.h>
 #include <ArduinoJson.h>
-#include "bendali.h"
+#include "bdali.h"
+#include "dlight.h"
 #include <SPIFFS.h>
 extern WebSocketsServer webSocket;
 extern BDali* bdali;

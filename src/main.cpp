@@ -4,7 +4,8 @@
 #include <AsyncTCP.h>
 #include <WebSocketsServer.h>
 #include "SPIFFS.h"
-#include "bendali.h"
+#include "bdali.h"
+#include "dlight.h"
 #include <ArduinoJSON.h>
 #include <ArduinoOTA.h>
 #include <vector>

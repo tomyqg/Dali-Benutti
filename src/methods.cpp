@@ -1,6 +1,7 @@
 // #include <Arduino.h>
 // #include <ArduinoJson.h>
 #include "methods.h"
+#include "dlight.h"
 
 const int maxClients = 5;
 int clientcount = 0;
@@ -29,16 +30,16 @@ void sendDLights(uint8_t num){
 
         // create a JsonArray for the groups and add them to the JsonObject
         JsonArray groupsArray = lightObject.createNestedArray("groups");
+        bool* groups = light.getGroups();
         for (int i = 0; i < 16; i++) {
-          groupsArray.add(light.getGroup(i));
+          groupsArray.add(groups[i]);
         }
-
         // create a JsonArray for the sceneLevels and add them to the JsonObject
         JsonArray sceneLevelsArray = lightObject.createNestedArray("sceneLevels");
+        uint8_t* sceneLevels = light.getSceneLevels();
         for (int i = 0; i < 16; i++) {
-          sceneLevelsArray.add(light.getSceneLevel(i));
+          sceneLevelsArray.add(sceneLevels[i]);
         }
-
         lightObject["failLevel"] = light.getFailLevel();
         lightObject["powerOnLevel"] = light.getPowerOnLevel();
         lightObject["physmin"] = light.getPhysmin();
@@ -168,8 +169,8 @@ void webSocketEvent(const uint8_t num, WStype_t type, uint8_t * payload, size_t 
         IPAddress ip = webSocket.remoteIP(num);
         Serial.printf("[%u] Connected from %d.%d.%d.%d url: %s\n", num, ip[0], ip[1], ip[2], ip[3], payload);
 
-        // send message to client
-       // webSocket.sendTXT(num, "{\"frlightcnt\":\"Connected\"}");
+        // send refresh message to client
+      //  webSocket.sendTXT(num, "{\"command\":\"refresh\"}");
       } else {
         webSocket.disconnect();
       }
@@ -201,7 +202,7 @@ void webSocketEvent(const uint8_t num, WStype_t type, uint8_t * payload, size_t 
             uint8_t lv=uint8_t(doc["level"]);
             doc.clear();
             bdali->setLightLevel(sa,lv);
-          }else if(command == "updateLight") {
+          } else if(command == "updateLight") {
             JsonObject lightData = doc["lightData"];
             uint8_t shortAddressToFind = lightData["shortAddress"];
             for (auto& light : lights) { // iterate through each DLight object in the vector
@@ -232,9 +233,12 @@ void webSocketEvent(const uint8_t num, WStype_t type, uint8_t * payload, size_t 
                 }
               }
             }
-          }else if(command == "eraseLights") {
+          } else if(command == "eraseLights") {
             eraseLights();
             // esp_restart();
+          } else if(command == "saveDB"){
+            doc.clear();
+            saveLights();
           }
         return;
       }

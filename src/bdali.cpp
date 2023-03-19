@@ -1,4 +1,5 @@
-#include "bendali.h"
+#include "bdali.h"
+// #include "dlight.h"
 
 // create dummy frame
 uint16_t Mockup(uint8_t param1,uint8_t param2)
@@ -327,7 +328,7 @@ void BDali::setPowerOnLevel(uint8_t lightNumber, uint8_t level) {
     SendCommand(DA_EXT_TERMINATE,0);
 };
 
-void BDali::setGroupMembership(uint8_t lightNumber, bool membership[16]) {
+void BDali::setGroupMemberships(uint8_t lightNumber, bool membership[16]) {
   // set the group membership values for the specified light number to the values in the specified array
   SendTwice(DA_EXT_INITIALISE,0);
   delay(100);
@@ -339,6 +340,19 @@ void BDali::setGroupMembership(uint8_t lightNumber, bool membership[16]) {
       SendTwice(shortAddress, DA_REMOVE_FROM_GROUP + i);
     };
   };
+  SendCommand(DA_EXT_TERMINATE,0);
+}
+
+void BDali::setGroupMembership(uint8_t lightNumber, bool membership, uint8_t group) {
+  // set the group membership value for the specified light number for the specific group
+  SendTwice(DA_EXT_INITIALISE,0);
+  delay(100);
+  uint8_t shortAddress = GetShortAddress(lightNumber, DA_MODE_COMMAND);
+    if (membership) {
+      SendTwice(shortAddress, DA_ADD_TO_GROUP + group);
+    } else {
+      SendTwice(shortAddress, DA_REMOVE_FROM_GROUP + group);
+    };
   SendCommand(DA_EXT_TERMINATE,0);
 }
 
@@ -355,6 +369,20 @@ void BDali::setSceneLevels(uint8_t lightNumber, uint8_t sceneLevel[16]) {
       SendTwice(shortAddress, DA_DTR_AS_SCENE + i);
     }
   }
+  SendCommand(DA_EXT_TERMINATE, 0);
+}
+
+void BDali::setSceneLevel(uint8_t lightNumber, uint8_t sceneLevel, uint8_t scene) {
+  // set the scene levels for the specified light number to the values in the specified array
+  SendTwice(DA_EXT_INITIALISE, 0);
+  delay(100);
+  uint8_t shortAddress = GetShortAddress(lightNumber, DA_MODE_COMMAND);
+    if (sceneLevel == 0xFF) {
+      SendTwice(shortAddress, DA_REMOVE_FROM_SCENE + scene);
+    } else {
+      SendToDTR(DA_EXT_DTR0, sceneLevel);
+      SendTwice(shortAddress, DA_DTR_AS_SCENE + scene);
+    }
   SendCommand(DA_EXT_TERMINATE, 0);
 }
 
@@ -570,9 +598,11 @@ uint32_t BDali::find_addr() {
   return adr;
 }
 
-//onlyNew=DA_YES : all without short address
-//onlyNew=DA_NO : all 
-//returns number of new short addresses assigned
+/**
+ * @brief commissioning function
+ * @param onlyNew defines wether only new luminaires (DA_YES) should be found of reinitialise all (DA_NO)
+ * @returns number of new short addresses assigned
+ */
 uint8_t BDali::commission(uint8_t onlyNew) {
   uint8_t cnt = 0;
   uint8_t arr[64];
@@ -584,10 +614,13 @@ uint8_t BDali::commission(uint8_t onlyNew) {
       for (int i = 0; i < shortAddresses.size(); i++) {
         if (onlyNew == DA_YES){
         arr[shortAddresses[i]]=1;
-        }
+        } 
+        // else if(onlyNew == DA_NO){
+            // TODO: delete existing shorts with their scenes and groups if onlyNew is DA_NO
+        // };
     }
 
-  // TODO: delete existing shorts with their scenes and groups if onlyNew is DA_NO
+
 
   //start commissioning
   SendTwice(DA_EXT_INITIALISE,onlyNew);
