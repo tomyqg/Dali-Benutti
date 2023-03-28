@@ -1,6 +1,6 @@
 # Dali Lighting Control
 
-This is a project for controlling DALI lighting using ESP32 microcontroller and a LedWarrior 14 from Codemercenaries.
+This is a project for controlling DALI lighting using ESP32 microcontroller and a LedWarrior 14 from @codemercs-com .
 
 ## Features
 - Commissioning of the DALI fixtures (new only or all)
