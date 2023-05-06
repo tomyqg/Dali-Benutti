@@ -40,6 +40,16 @@ public:
   uint8_t getFadeTime();
   uint8_t getFadeRate();
   uint8_t getLevel();
+  uint8_t getMinLevelD();
+  uint8_t getMaxLevelD();
+  bool* getGroupsD();
+  uint8_t* getSceneLevelsD();
+  uint8_t getFailLevelD();
+  uint8_t getPowerOnLevelD();
+  uint8_t getPhysminD();
+  uint8_t getFadeTimeD();
+  uint8_t getFadeRateD();
+  uint8_t getLevelD();
 
   // Setter functions
   void setName(String newName);
@@ -56,14 +66,14 @@ public:
   void setLevel(uint8_t newLevel);
 
 private:
-  BDali& bdali;
+  BDali* bdali; // change to pointer
   uint8_t shortAddress;
   String name;
   String room;
   uint8_t minLevel;
   uint8_t maxLevel;
-  bool* groups;
-  uint8_t* sceneLevels;
+  bool groups[16];
+  uint8_t sceneLevels[16];
   uint8_t failLevel;
   uint8_t powerOnLevel;
   uint8_t physmin;

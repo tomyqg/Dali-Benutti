@@ -82,6 +82,140 @@ void WaitForReady()
     }
 }
 
+struct DALIStatus {
+    bool busError;
+    bool busy;
+    bool overrun;
+    bool frameError;
+    bool validReply;
+    bool replyTimeframe;
+    bool twoByteTelegram;
+    bool oneByteTelegram;
+};
+
+DALIStatus getStatus() {
+    SetI2CReadRegister(I2C_REG_STATUS);
+    Wire.requestFrom(LW14_I2C, (uint8_t)1);
+    uint8_t statusByte = Wire.read();
+    DALIStatus status = {
+        (bool)(statusByte & STATUS_BUS_FAULT),
+        (bool)(statusByte & STATUS_BUSY),
+        (bool)(statusByte & STATUS_OVERRUN),
+        (bool)(statusByte & STATUS_FRAME_ERROR),
+        (bool)(statusByte & STATUS_VALID),
+        (bool)(statusByte & STATUS_TIMEFRAME),
+        (bool)(statusByte & STATUS_2BYTE),
+        (bool)(statusByte & STATUS_1BYTE)
+    };
+    return status;
+}
+
+// Initialize previous status variable to 0
+uint8_t prevStatus = 0;
+
+void printStatus(bool printChangedOnly)
+{
+    static bool busError = false;
+    static bool busy = false;
+    static bool overrun = false;
+    static bool frameError = false;
+    static bool validReply = false;
+    static bool replyTimeframe = false;
+    static bool twoByteTelegram = false;
+    static bool oneByteTelegram = false;
+
+    SetI2CReadRegister(I2C_REG_STATUS);
+    Wire.requestFrom((uint8_t)LW14_I2C, (uint8_t)1);
+
+    uint8_t status = Wire.read();
+
+    bool busErrorNew = (status & STATUS_BUS_FAULT) != 0;
+    bool busyNew = (status & STATUS_BUSY) != 0;
+    bool overrunNew = (status & STATUS_OVERRUN) != 0;
+    bool frameErrorNew = (status & STATUS_FRAME_ERROR) != 0;
+    bool validReplyNew = (status & STATUS_VALID) != 0;
+    bool replyTimeframeNew = (status & STATUS_TIMEFRAME) != 0;
+    bool twoByteTelegramNew = (status & STATUS_2BYTE) != 0;
+    bool oneByteTelegramNew = (status & STATUS_1BYTE) != 0;
+
+    if (!printChangedOnly || busError != busErrorNew) {
+        Serial.print("DALI Bus Status: ");
+        Serial.println(busErrorNew ? "Bus Fault" : "OK");
+        busError = busErrorNew;
+    }
+
+    if (!printChangedOnly || busy != busyNew) {
+        Serial.print("DALI Bus Busy: ");
+        Serial.println(busyNew ? "Yes" : "No");
+        busy = busyNew;
+    }
+
+    if (!printChangedOnly || overrun != overrunNew) {
+        Serial.print("DALI Bus Overrun: ");
+        Serial.println(overrunNew ? "Yes" : "No");
+        overrun = overrunNew;
+    }
+
+    if (!printChangedOnly || frameError != frameErrorNew) {
+        Serial.print("DALI Bus Frame Error: ");
+        Serial.println(frameErrorNew ? "Yes" : "No");
+        frameError = frameErrorNew;
+    }
+
+    if (!printChangedOnly || validReply != validReplyNew) {
+        Serial.print("DALI Bus Valid Reply: ");
+        Serial.println(validReplyNew ? "Yes" : "No");
+        validReply = validReplyNew;
+    }
+
+    if (!printChangedOnly || replyTimeframe != replyTimeframeNew) {
+        Serial.print("DALI Bus Reply Timeframe: ");
+        Serial.println(replyTimeframeNew ? "Yes" : "No");
+        replyTimeframe = replyTimeframeNew;
+    }
+
+    if (!printChangedOnly || twoByteTelegram != twoByteTelegramNew) {
+        Serial.print("DALI Bus Two-Byte Telegram Received: ");
+        Serial.println(twoByteTelegramNew ? "Yes" : "No");
+        twoByteTelegram = twoByteTelegramNew;
+    }
+
+    if (!printChangedOnly || oneByteTelegram != oneByteTelegramNew) {
+        Serial.print("DALI Bus One-Byte Telegram Received: ");
+        Serial.println(oneByteTelegramNew ? "Yes" : "No");
+        oneByteTelegram = oneByteTelegramNew;
+    }
+
+}
+// // testing dalisniffing
+// uint8_t WaitForDaliMessage()
+// {
+//     //Set register to read from
+//     Wire.beginTransmission(LW14_I2C);
+//     Wire.write(I2C_REG_COMMAND);
+//     Wire.endTransmission();
+
+//     //Read from register
+//     Wire.requestFrom((uint8_t)LW14_I2C, (uint8_t)1);
+//     return Wire.read();
+// }
+uint16_t WaitForDaliMessage()
+{
+    Wire.beginTransmission(LW14_I2C);
+    Wire.write(I2C_REG_COMMAND);
+    Wire.endTransmission();
+
+    uint16_t result = 0;
+    Wire.requestFrom(LW14_I2C, 2);
+
+    if (Wire.available() == 2) {
+        uint8_t b1 = Wire.read();
+        uint8_t b2 = Wire.read();
+        result = (b1 << 8) | b2;
+    }
+
+    return result;
+}
 //Wait for query result from slave device
 uint8_t WaitForReply()
 {
@@ -140,6 +274,7 @@ void SendTwice(uint8_t byte1, uint8_t byte2)
     Wire.write((uint8_t)byte1);         //DALI address
     Wire.write((uint8_t)byte2);         //Value
     Wire.endTransmission();
+    WaitForReady();
 
 }
 
@@ -236,6 +371,10 @@ void BDali::setLightLevel(uint8_t lightNumber, uint8_t level) {
     // code to set the level of a specific light
     uint8_t shortAddress;
     shortAddress = GetShortAddress(lightNumber,DA_MODE_DACP);
+    Serial.print("setting level of ");
+    Serial.print(lightNumber);
+    Serial.print(" to ");
+    Serial.println(level);
     SendCommand(shortAddress,level);
 };
 
@@ -289,6 +428,25 @@ void BDali::setFailLevel(uint8_t lightNumber, uint8_t level) {
     SendCommand(DA_EXT_TERMINATE,0);
 };
 
+
+uint16_t BDali::readbus(){
+  printStatus(true);
+  uint16_t res=WaitForDaliMessage();
+  return res;
+}
+// void BDali::setConfig(uint8_t lightNumber, uint8_t minLevel, uint8_t maxLevel, uint8_t poLevel, bool membership[16], uint8_t sceneLevel[16], uint8_t fadeTime, uint8_t fadeRate) {
+//   // set the minimum level for the specified light number to the specified level
+//   SendTwice(DA_EXT_INITIALISE,0);
+//   delay(100);
+//     // Set the value of DTR0 to the desired level
+//     SendToDTR(DA_EXT_DTR0, level);
+
+//     // Save the value of DTR0 as the minimum level for the specified light
+//     uint8_t shortAddress = GetShortAddress(lightNumber, DA_MODE_COMMAND);
+//     SendTwice(shortAddress, DA_DTR_MIN_LEVEL);
+//     SendCommand(DA_EXT_TERMINATE,0);
+// };
+
 void BDali::setMinLevel(uint8_t lightNumber, uint8_t level) {
   // set the minimum level for the specified light number to the specified level
   SendTwice(DA_EXT_INITIALISE,0);
@@ -324,7 +482,7 @@ void BDali::setPowerOnLevel(uint8_t lightNumber, uint8_t level) {
 
     // Save the value of DTR0 as the minimum level for the specified light
     uint8_t shortAddress = GetShortAddress(lightNumber, DA_MODE_COMMAND);
-    SendTwice(shortAddress, DA_DTR_MIN_LEVEL);
+    SendTwice(shortAddress, DA_DTR_POWER_ON_LEVEL);
     SendCommand(DA_EXT_TERMINATE,0);
 };
 

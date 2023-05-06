@@ -53,6 +53,52 @@ void sendDLights(uint8_t num){
       webSocket.sendTXT(num, jsonString);
 };
 
+void sendDLightDetail(uint8_t num, uint8_t sa) {
+  // create a DynamicJsonDocument object with the capacity for a single DLight instance
+  DynamicJsonDocument doc(1024);
+
+  // create a JsonObject and set its "command" property to "dalidetail"
+  JsonObject data = doc.to<JsonObject>();
+  data["command"] = "dalidetail";
+
+  // create a JsonArray for the lights and add the matching DLight instance to it
+  JsonArray lightsArray = data.createNestedArray("data");
+  for (auto& light : lights) {
+    if (light.getShortAddress() == sa) {
+      // create a JsonObject and set its properties
+      JsonObject lightObject = lightsArray.createNestedObject();
+      lightObject["shortAddress"] = light.getShortAddress();
+      lightObject["name"] = light.getName();
+      lightObject["room"] = light.getRoom();
+      lightObject["minLevel"] = light.getMinLevel();
+      lightObject["maxLevel"] = light.getMaxLevel();
+
+      // create a JsonArray for the groups and add them to the JsonObject
+      JsonArray groupsArray = lightObject.createNestedArray("groups");
+      bool* groups = light.getGroups();
+      for (int i = 0; i < 16; i++) {
+        groupsArray.add(groups[i]);
+      }
+      // create a JsonArray for the sceneLevels and add them to the JsonObject
+      JsonArray sceneLevelsArray = lightObject.createNestedArray("sceneLevels");
+      uint8_t* sceneLevels = light.getSceneLevels();
+      for (int i = 0; i < 16; i++) {
+        sceneLevelsArray.add(sceneLevels[i]);
+      }
+      lightObject["failLevel"] = light.getFailLevel();
+      lightObject["powerOnLevel"] = light.getPowerOnLevel();
+      lightObject["physmin"] = light.getPhysmin();
+      lightObject["fadeTime"] = light.getFadeTime();
+      lightObject["fadeRate"] = light.getFadeRate();
+    }
+  }
+
+  // serialize the document to a String
+  String jsonString;
+  serializeJson(doc, jsonString);
+  webSocket.sendTXT(num, jsonString);
+}
+
 void eraseLights() {
   if (SPIFFS.exists("/lights.bin")) {
     SPIFFS.remove("/lights.bin");
@@ -113,6 +159,7 @@ void loadLights() {
     File file = SPIFFS.open("/lights.bin", "r");
     int size;
     file.read((uint8_t*)&size, sizeof(size));
+     Serial.printf("lights vector size: %d\n", size);
     lights.resize(size);
     for (auto& instance : lights) {
       file.read((uint8_t*)&instance, sizeof(instance));
@@ -124,17 +171,26 @@ void loadLights() {
     std::vector<uint8_t> shorts = bdali->findLights();
     // then query all data from those shortaddresses  and finally store it in an instance.
     for(auto sa = shorts.begin(); sa != shorts.end(); sa++ ){
+       Serial.print("Processing light with short address ");
+        Serial.println(*sa);
         uint8_t shortAddress = *sa;
         String name = "Unknown";
         String room = "Unknown";
         uint8_t minLevel = bdali->getMinLevel(*sa);
-        uint8_t maxLevel = bdali->getMaxLevel(*sa);
+        uint8_t maxLevel = bdali->getMaxLevel(*sa);     
         bool groups[16] = { 0 };
           bool* groupMembership = bdali->getGroupMembership(*sa);
             for(int i = 0; i < 16; i++) {
             groups[i] = groupMembership[i];
            }
            delete[] groupMembership;
+               Serial.print("Groups for light with short address ");
+    Serial.println(shortAddress);
+    for(int i = 0; i < 16; i++) {
+        Serial.print(groups[i]);
+        Serial.print(" ");
+    }
+    Serial.println();
         uint8_t sceneLevels[16] = { 0 };
           uint8_t* scenes = bdali->getSceneLevels(*sa);
             for(int i = 0; i < 16; i++) {
@@ -147,16 +203,27 @@ void loadLights() {
         uint8_t fadeTime = bdali->getFadeTime(*sa);
         uint8_t fadeRate = bdali->getFadeRate(*sa);
         uint8_t level = bdali->getLightLevel(*sa);
+            // Print the sceneLevels array for debugging
+    Serial.print("Scene levels for light with short address ");
+    Serial.print(shortAddress);
+    Serial.print(": ");
+    for (int i = 0; i < 16; i++) {
+        Serial.print(sceneLevels[i]);
+        Serial.print(" ");
+    }
+    Serial.println();
     // Create an instance of DLight with the above parameters
     DLight light(bdali, shortAddress, name, room, minLevel, maxLevel, groups, sceneLevels, failLevel, powerOnLevel, physmin, fadeTime, fadeRate, level);
+    Serial.println("DLight instance created");
 
     // Add the DLight instance to the lights vector
-    lights.push_back(light);
-      }
+    lights.push_back(std::move(light));
+  }
       saveLights();
   }
 };
 void webSocketEvent(const uint8_t num, WStype_t type, uint8_t * payload, size_t length) {
+  Serial.println("wsevent");
   StaticJsonDocument<1024> doc;
   switch (type) {
     case WStype_DISCONNECTED:
@@ -191,9 +258,14 @@ void webSocketEvent(const uint8_t num, WStype_t type, uint8_t * payload, size_t 
           String command = doc["command"];
           // handle "getLights" command
           if (command == "getLights") {
-            // Serial.println("executing getlights");
+           Serial.println("executing getlights");
             doc.clear();
             sendDLights(num);
+          } else if(command == "fetchDaliDetail") {
+           Serial.println("executing fetchDaliDetail");
+          uint8_t sa=uint8_t(doc["sa"]);
+            doc.clear();
+            sendDLightDetail(num,sa);
           } else if(command == "levels"){
             doc.clear();
             sendLevels();
@@ -201,7 +273,12 @@ void webSocketEvent(const uint8_t num, WStype_t type, uint8_t * payload, size_t 
             uint8_t sa=uint8_t(doc["shortAddress"]);
             uint8_t lv=uint8_t(doc["level"]);
             doc.clear();
-            bdali->setLightLevel(sa,lv);
+            for (auto& light : lights) {
+            if (light.getShortAddress() == sa) {
+              light.setLevel(lv);
+              break;
+            }}
+            // bdali->setLightLevel(sa,lv);
           } else if(command == "updateLight") {
             JsonObject lightData = doc["lightData"];
             uint8_t shortAddressToFind = lightData["shortAddress"];
@@ -239,8 +316,22 @@ void webSocketEvent(const uint8_t num, WStype_t type, uint8_t * payload, size_t 
           } else if(command == "saveDB"){
             doc.clear();
             saveLights();
-          }
-        return;
+          } else if(command == "comissionAll"){
+            doc.clear();
+            lights.empty();
+            bdali->commission(DA_NO);
+            loadLights();
+            sendDLights(num);
+          } else if(command == "comissionNew"){
+            doc.clear();
+            bdali->commission(DA_YES);
+            loadLights();
+            sendDLights(num); 
+          }else if(command == "search"){
+            doc.clear();
+            loadLights();
+            sendDLights(num);
+          }        return;
       }
   };
 }

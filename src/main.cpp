@@ -6,6 +6,7 @@
 #include "SPIFFS.h"
 #include "bdali.h"
 #include "dlight.h"
+#include <ESPmDNS.h>
 #include <ArduinoJSON.h>
 #include <ArduinoOTA.h>
 #include <vector>
@@ -45,7 +46,7 @@ IPAddress localIP;
 // Set your Gateway IP address
 IPAddress localGateway;
 //IPAddress localGateway(192, 168, 1, 1); //hardcoded
-IPAddress subnet(255, 255, 0, 0);
+IPAddress subnet(255, 255, 255, 0);
 
 // Timer variables
 unsigned long previousMillis = 0;
@@ -160,7 +161,32 @@ void setup() {
     server.begin();
     loadLights();
   webSocket.begin();
+
+  // Generate hostname based on MAC address
+  String hostname = "bdali-" + WiFi.macAddress();
+  hostname.replace(":", "");
+
+ 
+  // Initialize mDNS responder
+  if (!MDNS.begin(hostname.c_str())) {
+    Serial.println("Error setting up MDNS responder!");
+    while (1) {
+      delay(1000);
+    }
+  }
+
+  // Advertise custom service
+  MDNS.addService("_bendali", "_tcp", 81);
+
+  Serial.println("MDNS responder started");
+
+
+
+
+
   webSocket.onEvent(webSocketEvent);
+    // Disable mDNS for the OTA service
+  ArduinoOTA.setMdnsEnabled(false);
     ArduinoOTA
       .onStart([]() {
         String type;
@@ -266,10 +292,25 @@ void setup() {
 
   }
 }
-
+uint16_t antwrd;
+uint16_t prevVal = 0;
 void loop() {
   webSocket.loop();
   ArduinoOTA.handle();
+antwrd = bdali->readbus();
+
+if (antwrd != prevVal) {
+  uint8_t upperByte = antwrd >> 8;
+  uint8_t lowerByte = antwrd & 0xFF;
+  
+  Serial.print("Upper byte: 0x");
+  Serial.print(upperByte, HEX);
+  Serial.print(", Lower byte: 0x");
+  Serial.println(lowerByte, HEX);
+  
+  prevVal = antwrd;
+}
+
   //   if (millis() - lastWsLVSendTime >= interval) {
   //   // Send WebSocket message
   //   sendJSON();

@@ -92,5 +92,6 @@ public:
     uint8_t query_short_address();
     uint32_t find_addr();
     uint8_t commission(uint8_t onlyNew);
+    uint16_t readbus();
 };
 #endif // __BDALI_H__
